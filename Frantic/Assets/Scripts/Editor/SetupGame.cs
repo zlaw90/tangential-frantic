@@ -13,6 +13,24 @@ namespace Frantic.Networking.Editor
 {
     public class SetupGame
     {
+        static Material _greenMat;
+        static Material _redMat;
+        static Material _grayMat;
+        static Material _yellowMat;
+        static Material _blueMat;
+
+        static Material GetMat(Color color)
+        {
+            var shader = Shader.Find("Sprites/Default");
+            return new Material(shader) { color = color };
+        }
+
+        static Material GreenMat => _greenMat ??= GetMat(Color.green);
+        static Material RedMat => _redMat ??= GetMat(Color.red);
+        static Material GrayMat => _grayMat ??= GetMat(Color.gray);
+        static Material YellowMat => _yellowMat ??= GetMat(Color.yellow);
+        static Material BlueMat => _blueMat ??= GetMat(Color.blue);
+
         [MenuItem("Frantic/Setup All")]
         public static void SetupEverything()
         {
@@ -52,8 +70,10 @@ namespace Frantic.Networking.Editor
             boxCollider.size = new Vector2(4f, 2f);
             entrance.transform.position = new Vector3(0f, -8f, 0f);
 
-            var exitMarker = entrance.AddComponent<SpriteRenderer>();
-            exitMarker.color = Color.blue;
+            var exitMeshRenderer = entrance.AddComponent<MeshRenderer>();
+            exitMeshRenderer.material = BlueMat;
+            var exitMeshFilter = entrance.AddComponent<MeshFilter>();
+            exitMeshFilter.mesh = CreateCubeMesh(4f, 0.5f, 0.1f);
 
             var camera = new GameObject("MainCamera");
             camera.tag = "MainCamera";
@@ -88,7 +108,11 @@ namespace Frantic.Networking.Editor
             var rb = playerRoot.AddComponent<Rigidbody2D>();
             rb.gravityScale = 0f;
             playerRoot.AddComponent<CircleCollider2D>().radius = 0.5f;
-            playerRoot.AddComponent<SpriteRenderer>().color = Color.green;
+
+            var meshRenderer = playerRoot.AddComponent<MeshRenderer>();
+            meshRenderer.material = GreenMat;
+            var meshFilter = playerRoot.AddComponent<MeshFilter>();
+            meshFilter.mesh = CreateCubeMesh(1f, 1f, 0.1f);
 
             var playerInput = playerRoot.AddComponent<PlayerInput>();
             var inputActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
@@ -122,7 +146,12 @@ namespace Frantic.Networking.Editor
             enemyRoot.AddComponent<NetworkObject>();
             enemyRoot.AddComponent<Rigidbody2D>().gravityScale = 0f;
             enemyRoot.AddComponent<CircleCollider2D>().radius = 0.5f;
-            enemyRoot.AddComponent<SpriteRenderer>().color = Color.red;
+
+            var meshRenderer = enemyRoot.AddComponent<MeshRenderer>();
+            meshRenderer.material = RedMat;
+            var meshFilter = enemyRoot.AddComponent<MeshFilter>();
+            meshFilter.mesh = CreateCubeMesh(1f, 1f, 0.1f);
+
             enemyRoot.AddComponent<Frantic.Networking.EnemyNetwork>();
 
             PrefabUtility.SaveAsPrefabAsset(enemyRoot, prefabPath);
@@ -143,9 +172,11 @@ namespace Frantic.Networking.Editor
             var roomRoot = new GameObject("Room");
             roomRoot.AddComponent<NetworkObject>();
             roomRoot.AddComponent<BoxCollider2D>().size = new Vector2(10f, 10f);
-            var sr = roomRoot.AddComponent<SpriteRenderer>();
-            sr.color = Color.gray;
-            sr.size = new Vector2(10f, 10f);
+
+            var meshRenderer = roomRoot.AddComponent<MeshRenderer>();
+            meshRenderer.material = GrayMat;
+            var meshFilter = roomRoot.AddComponent<MeshFilter>();
+            meshFilter.mesh = CreateCubeMesh(10f, 10f, 0.1f);
 
             PrefabUtility.SaveAsPrefabAsset(roomRoot, prefabPath);
             GameObject.DestroyImmediate(roomRoot);
@@ -166,7 +197,11 @@ namespace Frantic.Networking.Editor
             projRoot.AddComponent<NetworkObject>();
             projRoot.AddComponent<Rigidbody2D>().gravityScale = 0f;
             projRoot.AddComponent<CircleCollider2D>().radius = 0.15f;
-            projRoot.AddComponent<SpriteRenderer>().color = Color.yellow;
+
+            var meshRenderer = projRoot.AddComponent<MeshRenderer>();
+            meshRenderer.material = YellowMat;
+            var meshFilter = projRoot.AddComponent<MeshFilter>();
+            meshFilter.mesh = CreateCubeMesh(0.3f, 0.3f, 0.1f);
 
             PrefabUtility.SaveAsPrefabAsset(projRoot, prefabPath);
             GameObject.DestroyImmediate(projRoot);
@@ -226,6 +261,37 @@ namespace Frantic.Networking.Editor
 
                 Debug.Log("[Setup] Prefabs registered in DefaultNetworkPrefabs.asset");
             }
+        }
+
+        static Mesh CreateCubeMesh(float width, float height, float depth)
+        {
+            var mesh = new Mesh();
+            var vertices = new Vector3[]
+            {
+                new Vector3(-0.5f * width, -0.5f * height, -0.5f * depth),
+                new Vector3(0.5f * width, -0.5f * height, -0.5f * depth),
+                new Vector3(0.5f * width, 0.5f * height, -0.5f * depth),
+                new Vector3(-0.5f * width, 0.5f * height, -0.5f * depth),
+                new Vector3(-0.5f * width, -0.5f * height, 0.5f * depth),
+                new Vector3(0.5f * width, -0.5f * height, 0.5f * depth),
+                new Vector3(0.5f * width, 0.5f * height, 0.5f * depth),
+                new Vector3(-0.5f * width, 0.5f * height, 0.5f * depth),
+            };
+
+            var triangles = new int[]
+            {
+                0, 1, 2, 0, 2, 3,  // front
+                4, 6, 5, 4, 7, 6,  // back
+                3, 2, 6, 3, 6, 7,  // top
+                0, 5, 1, 0, 4, 5,  // bottom
+                0, 3, 7, 0, 7, 4,  // left
+                1, 5, 6, 1, 6, 2,  // right
+            };
+
+            mesh.vertices = vertices;
+            mesh.triangles = triangles;
+            mesh.RecalculateNormals();
+            return mesh;
         }
     }
 }
