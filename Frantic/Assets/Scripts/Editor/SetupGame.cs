@@ -78,7 +78,7 @@ namespace Frantic.Networking.Editor
             playerRoot.AddComponent<SpriteRenderer>().color = Color.green;
 
             var playerInput = playerRoot.AddComponent<PlayerInput>();
-            var inputActions = AssetDatabase.LoadAssetAtPath<InputSystem.InputActionAsset>("Assets/InputSystem_Actions.inputactions");
+            var inputActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
             if (inputActions != null) playerInput.actions = inputActions;
             playerRoot.AddComponent<Frantic.Networking.PlayerNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerHealthNetwork>();
