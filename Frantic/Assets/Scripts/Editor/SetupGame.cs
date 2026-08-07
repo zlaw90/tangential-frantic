@@ -27,8 +27,8 @@ namespace Frantic.Networking.Editor
         [MenuItem("Frantic/Setup Hub Scene")]
         public static void CreateHubScene()
         {
-            var scene = SceneManager.CreateScene("Hub");
-            SceneManager.SetActiveScene(scene);
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            EditorSceneManager.SetActiveScene(scene);
 
             var networkManager = new GameObject("NetworkManager");
             networkManager.AddComponent<Frantic.Networking.FranticNetworkManager>();
@@ -49,7 +49,9 @@ namespace Frantic.Networking.Editor
             var exitMarker = entrance.AddComponent<SpriteRenderer>();
             exitMarker.color = Color.blue;
 
-            EditorSceneManager.SaveScene(scene);
+            var hubRoot = new GameObject("Hub");
+
+            EditorSceneManager.SaveScene(scene, "Assets/Scenes/Hub.unity");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 

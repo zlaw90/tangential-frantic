@@ -13,4 +13,19 @@ MonoBehaviour:
   m_Name: DefaultNetworkPrefabs
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkPrefabsList
   IsDefault: 1
-  List: []
+  List:
+  - Override: 0
+    Prefab: {fileID: 3408868930219921903, guid: 27fc656470f2ace4fbe745372ff9afc7, type: 3}
+    SourcePrefabToOverride: {fileID: 3408868930219921903, guid: 27fc656470f2ace4fbe745372ff9afc7, type: 3}
+    SourceHashToOverride: 0
+    OverridingTargetPrefab: {fileID: 0}
+  - Override: 0
+    Prefab: {fileID: 6887661156132468443, guid: 2dd060e40c1f6c948966cb019e6deb20, type: 3}
+    SourcePrefabToOverride: {fileID: 6887661156132468443, guid: 2dd060e40c1f6c948966cb019e6deb20, type: 3}
+    SourceHashToOverride: 0
+    OverridingTargetPrefab: {fileID: 0}
+  - Override: 0
+    Prefab: {fileID: 948847647396987916, guid: b5bf59819f7456b44b3908ad5ba9048e, type: 3}
+    SourcePrefabToOverride: {fileID: 948847647396987916, guid: b5bf59819f7456b44b3908ad5ba9048e, type: 3}
+    SourceHashToOverride: 0
+    OverridingTargetPrefab: {fileID: 0}
