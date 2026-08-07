@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using System.IO;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 namespace Frantic.Networking.Editor
 {
@@ -76,6 +77,9 @@ namespace Frantic.Networking.Editor
             playerRoot.AddComponent<CircleCollider2D>().radius = 0.5f;
             playerRoot.AddComponent<SpriteRenderer>().color = Color.green;
 
+            var playerInput = playerRoot.AddComponent<PlayerInput>();
+            var inputActions = AssetDatabase.LoadAssetAtPath<InputSystem.InputActionAsset>("Assets/InputSystem_Actions.inputactions");
+            if (inputActions != null) playerInput.actions = inputActions;
             playerRoot.AddComponent<Frantic.Networking.PlayerNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerHealthNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerCombatNetwork>();
@@ -174,6 +178,7 @@ namespace Frantic.Networking.Editor
             if (playerPrefab != null)
             {
                 networkManager.NetworkConfig.PlayerPrefab = playerPrefab;
+                EditorUtility.SetDirty(networkManager);
                 Debug.Log("[Setup] Player prefab registered");
             }
 

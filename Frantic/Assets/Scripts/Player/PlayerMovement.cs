@@ -20,9 +20,7 @@ namespace Frantic.Networking
         {
             if (!IsOwner) return;
 
-            var input = Vector2.zero;
-            input.x = Input.GetAxisRaw("Horizontal");
-            input.y = Input.GetAxisRaw("Vertical");
+            var input = InputManager.Move;
 
             if (input.sqrMagnitude > 1f)
             {

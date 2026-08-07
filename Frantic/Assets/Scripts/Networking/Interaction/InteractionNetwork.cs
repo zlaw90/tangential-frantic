@@ -15,7 +15,7 @@ namespace Frantic.Networking
         {
             if (!IsOwner) return;
 
-            if (Input.GetButtonDown("Interact"))
+            if (InputManager.Interact)
             {
                 CheckInteraction();
             }

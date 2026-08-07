@@ -1,13 +1,11 @@
 using UnityEngine;
 using Unity.Netcode;
+using UnityEngine.InputSystem;
 
 namespace Frantic.Networking
 {
     public class PlayerNetwork : FranticNetworkObject
     {
-        [SerializeField]
-        private float _moveSpeed = 5f;
-
         [SerializeField]
         internal Transform weaponTip;
 
@@ -21,24 +19,21 @@ namespace Frantic.Networking
 
             _health = GetComponent<PlayerHealthNetwork>();
             _combat = GetComponent<PlayerCombatNetwork>();
+
+            var playerInput = GetComponent<PlayerInput>();
+            if (playerInput != null)
+            {
+                InputManager.Initialize(playerInput);
+            }
         }
 
         private void Update()
         {
             if (!IsOwner) return;
 
-            var input = Vector2.zero;
-            input.x = Input.GetAxisRaw("Horizontal");
-            input.y = Input.GetAxisRaw("Vertical");
-
-            if (input.sqrMagnitude > 1f)
+            if (InputManager.Fire && _combat != null)
             {
-                input.Normalize();
-            }
-
-            if (Input.GetButtonDown("Fire1") && _combat != null)
-            {
-                _combat.FireWeaponServerRpc(input);
+                _combat.FireWeaponServerRpc(InputManager.Move);
             }
         }
 
