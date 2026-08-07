@@ -17,14 +17,14 @@ namespace Frantic.Networking
         [SerializeField]
         private int _attackDamage = 10;
 
-        private NetworkVariable<int> _networkHealth;
+        private NetworkVariable<int> _networkHealth = new NetworkVariable<int>();
 
         private Transform _targetPlayer;
 
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
-            _networkHealth = new NetworkVariable<int>(_maxHealth);
+            _networkHealth.Value = _maxHealth;
             Debug.Log($"[Enemy] Spawned with {_maxHealth} HP");
 
             FindNearestPlayer();
@@ -42,7 +42,7 @@ namespace Frantic.Networking
 
         private void FindNearestPlayer()
         {
-            var players = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None );
+            var players = FindObjectsOfType<PlayerNetwork>();
             if (players.Length == 0) return;
 
             float nearestDistance = float.MaxValue;

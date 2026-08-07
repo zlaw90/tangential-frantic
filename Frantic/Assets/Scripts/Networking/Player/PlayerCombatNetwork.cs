@@ -22,13 +22,13 @@ namespace Frantic.Networking
 
         private float _lastFireTime;
         private int _currentAmmo;
-        private NetworkVariable<int> _networkAmmo;
+        private NetworkVariable<int> _networkAmmo = new NetworkVariable<int>();
 
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
             _currentAmmo = _maxAmmo;
-            _networkAmmo = new NetworkVariable<int>(_maxAmmo);
+            _networkAmmo.Value = _maxAmmo;
             Debug.Log($"[Combat] Initialized with {_maxAmmo} ammo");
         }
 

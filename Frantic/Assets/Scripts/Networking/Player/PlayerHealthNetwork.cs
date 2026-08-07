@@ -12,15 +12,15 @@ namespace Frantic.Networking
         [SerializeField]
         private int _maxHealth = 100;
 
-        private NetworkVariable<int> _networkHealth;
+        private NetworkVariable<int> _networkHealth = new NetworkVariable<int>();
 
-        public int CurrentHealth => _networkHealth?.Value ?? _maxHealth;
+        public int CurrentHealth => _networkHealth.Value;
         public int MaxHealth => _maxHealth;
 
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
-            _networkHealth = new NetworkVariable<int>(_maxHealth);
+            _networkHealth.Value = _maxHealth;
             Debug.Log($"[Health] Initialized with {_maxHealth} HP");
         }
 

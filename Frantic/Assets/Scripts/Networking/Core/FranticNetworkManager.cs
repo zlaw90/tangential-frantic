@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Unity.Netcode;
 
 namespace Frantic.Networking
@@ -10,6 +9,8 @@ namespace Frantic.Networking
 
         public const string HUB_SCENE = "Hub";
         public const string DUNGEON_SCENE = "Dungeon";
+
+        private bool _isShuttingDown;
 
         private void Awake()
         {
@@ -26,6 +27,11 @@ namespace Frantic.Networking
         private void Start()
         {
             OnClientDisconnectCallback += OnClientDisconnect;
+        }
+
+        private void OnDestroy()
+        {
+            _isShuttingDown = true;
         }
 
         public void StartHost()
@@ -45,6 +51,8 @@ namespace Frantic.Networking
 
         private void OnClientDisconnect(ulong clientId)
         {
+            if (_isShuttingDown) return;
+
             Debug.Log($"[Network] Client {clientId} disconnected");
 
             if (IsHost)
@@ -62,29 +70,43 @@ namespace Frantic.Networking
 
         public void ReturnToHub()
         {
-            if (IsHost)
+            if (!IsHost) return;
+            if (_isShuttingDown) return;
+
+            var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            if (currentScene.name == HUB_SCENE)
             {
-                Debug.Log("[Network] Host loading hub scene");
-                SceneManager.LoadScene(HUB_SCENE, LoadSceneMode.Single);
+                Debug.Log("[Network] Already in hub scene");
+                return;
             }
+
+            Debug.Log("[Network] Host loading hub scene");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(HUB_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
 
         public void LoadDungeonScene()
         {
-            if (IsHost)
-            {
-                Debug.Log("[Network] Host loading dungeon scene");
-                SceneManager.LoadScene(DUNGEON_SCENE, LoadSceneMode.Single);
-            }
+            if (!IsHost) return;
+            if (_isShuttingDown) return;
+
+            Debug.Log("[Network] Host loading dungeon scene");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(DUNGEON_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
 
         public void LoadHubScene()
         {
-            if (IsHost)
+            if (!IsHost) return;
+            if (_isShuttingDown) return;
+
+            var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            if (currentScene.name == HUB_SCENE)
             {
-                Debug.Log("[Network] Host loading hub scene");
-                SceneManager.LoadScene(HUB_SCENE, LoadSceneMode.Single);
+                Debug.Log("[Network] Already in hub scene");
+                return;
             }
+
+            Debug.Log("[Network] Host loading hub scene");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(HUB_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
     }
 }

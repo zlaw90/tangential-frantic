@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEditor;
 using Unity.Netcode;
-using Unity.Netcode.Components;
+using Unity.Netcode.Transports.SinglePlayer;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using Unity.Netcode.Components;
 
 namespace Frantic.Networking.Editor
 {
@@ -32,7 +33,10 @@ namespace Frantic.Networking.Editor
             EditorSceneManager.SetActiveScene(scene);
 
             var networkManager = new GameObject("NetworkManager");
-            networkManager.AddComponent<Frantic.Networking.FranticNetworkManager>();
+            var nmComponent = networkManager.AddComponent<Frantic.Networking.FranticNetworkManager>();
+
+            var transport = networkManager.AddComponent<SinglePlayerTransport>();
+            nmComponent.NetworkConfig.NetworkTransport = transport;
 
             var gameManager = new GameObject("GameManager");
             gameManager.AddComponent<Frantic.Networking.GameManager>();
@@ -49,6 +53,12 @@ namespace Frantic.Networking.Editor
 
             var exitMarker = entrance.AddComponent<SpriteRenderer>();
             exitMarker.color = Color.blue;
+
+            var camera = new GameObject("MainCamera");
+            camera.tag = "MainCamera";
+            var mainCamera = camera.AddComponent<Camera>();
+            mainCamera.orthographic = true;
+            camera.transform.position = new Vector3(0f, 0f, -10f);
 
             var hubRoot = new GameObject("Hub");
 
@@ -80,6 +90,7 @@ namespace Frantic.Networking.Editor
             var playerInput = playerRoot.AddComponent<PlayerInput>();
             var inputActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
             if (inputActions != null) playerInput.actions = inputActions;
+
             playerRoot.AddComponent<Frantic.Networking.PlayerNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerHealthNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerCombatNetwork>();
