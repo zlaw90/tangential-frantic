@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using Unity.Netcode;
-using Unity.Netcode.Transports.SinglePlayer;
+using Unity.Netcode.Transports.UTP;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using System.IO;
@@ -35,7 +35,8 @@ namespace Frantic.Networking.Editor
             var networkManager = new GameObject("NetworkManager");
             var nmComponent = networkManager.AddComponent<Frantic.Networking.FranticNetworkManager>();
 
-            var transport = networkManager.AddComponent<SinglePlayerTransport>();
+            var transport = networkManager.AddComponent<UnityTransport>();
+            transport.SetConnectionData("0.0.0.0", 7777);
             nmComponent.NetworkConfig.NetworkTransport = transport;
 
             var gameManager = new GameObject("GameManager");
@@ -56,6 +57,7 @@ namespace Frantic.Networking.Editor
 
             var camera = new GameObject("MainCamera");
             camera.tag = "MainCamera";
+            camera.AddComponent<Frantic.Networking.CameraController>();
             var mainCamera = camera.AddComponent<Camera>();
             mainCamera.orthographic = true;
             camera.transform.position = new Vector3(0f, 0f, -10f);
@@ -83,7 +85,8 @@ namespace Frantic.Networking.Editor
             networkTransform.SyncPositionY = true;
             networkTransform.UseQuaternionSynchronization = false;
 
-            playerRoot.AddComponent<Rigidbody2D>();
+            var rb = playerRoot.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0f;
             playerRoot.AddComponent<CircleCollider2D>().radius = 0.5f;
             playerRoot.AddComponent<SpriteRenderer>().color = Color.green;
 
@@ -117,7 +120,7 @@ namespace Frantic.Networking.Editor
 
             var enemyRoot = new GameObject("Enemy");
             enemyRoot.AddComponent<NetworkObject>();
-            enemyRoot.AddComponent<Rigidbody2D>();
+            enemyRoot.AddComponent<Rigidbody2D>().gravityScale = 0f;
             enemyRoot.AddComponent<CircleCollider2D>().radius = 0.5f;
             enemyRoot.AddComponent<SpriteRenderer>().color = Color.red;
             enemyRoot.AddComponent<Frantic.Networking.EnemyNetwork>();
@@ -161,7 +164,7 @@ namespace Frantic.Networking.Editor
 
             var projRoot = new GameObject("Projectile");
             projRoot.AddComponent<NetworkObject>();
-            projRoot.AddComponent<Rigidbody2D>();
+            projRoot.AddComponent<Rigidbody2D>().gravityScale = 0f;
             projRoot.AddComponent<CircleCollider2D>().radius = 0.15f;
             projRoot.AddComponent<SpriteRenderer>().color = Color.yellow;
 
