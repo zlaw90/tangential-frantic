@@ -23,10 +23,14 @@ namespace Frantic.Networking
 
         public GameState CurrentState => _currentState;
 
+        private void Awake()
+        {
+            Instance = this;
+        }
+
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
-            Instance = this;
             Debug.Log($"[GameManager] Spawned on {(IsHost || IsServer ? "server" : "client")}");
         }
 

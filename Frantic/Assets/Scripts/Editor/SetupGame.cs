@@ -122,6 +122,9 @@ namespace Frantic.Networking.Editor
             playerRoot.AddComponent<Frantic.Networking.PlayerHealthNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerCombatNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerMovement>();
+            var combat = playerRoot.GetComponent<Frantic.Networking.PlayerCombatNetwork>();
+            if (combat != null) combat._projectilePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Projectile.prefab");
+            playerRoot.AddComponent<Frantic.Networking.InteractionNetwork>();
 
             var weaponTip = new GameObject("WeaponTip");
             weaponTip.transform.parent = playerRoot.transform;
@@ -201,7 +204,7 @@ namespace Frantic.Networking.Editor
             var meshRenderer = projRoot.AddComponent<MeshRenderer>();
             meshRenderer.material = YellowMat;
             var meshFilter = projRoot.AddComponent<MeshFilter>();
-            meshFilter.mesh = CreateCubeMesh(0.3f, 0.3f, 0.1f);
+            meshFilter.mesh = CreateCubeMesh(0.5f, 0.5f, 0.1f);
 
             PrefabUtility.SaveAsPrefabAsset(projRoot, prefabPath);
             GameObject.DestroyImmediate(projRoot);

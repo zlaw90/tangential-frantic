@@ -29,6 +29,7 @@ namespace Frantic.Networking
             {
                 if (collider.CompareTag(_interactionTag))
                 {
+                    Debug.Log($"[Interaction] Found {collider.name}, calling ready");
                     GameManager.Instance?.RequestReadyServerRpc(OwnerClientId);
                     return;
                 }

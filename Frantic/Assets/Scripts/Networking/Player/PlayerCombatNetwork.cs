@@ -18,7 +18,7 @@ namespace Frantic.Networking
         private float _fireRange = 20f;
 
         [SerializeField]
-        private GameObject _projectilePrefab;
+        public GameObject _projectilePrefab;
 
         private float _lastFireTime;
         private int _currentAmmo;
@@ -83,6 +83,8 @@ namespace Frantic.Networking
         [ServerRpc]
         private void SpawnProjectileServerRpc(Vector3 position, Vector3 direction)
         {
+            Debug.Log($"[Combat] SpawnProjectileServerRpc called at {position} dir={direction}");
+
             if (_projectilePrefab != null)
             {
                 var projectile = GameObject.Instantiate(_projectilePrefab, position, Quaternion.identity);
