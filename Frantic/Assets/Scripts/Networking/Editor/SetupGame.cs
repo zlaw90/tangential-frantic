@@ -286,7 +286,7 @@ namespace Frantic.Networking.Editor
         public static void CreateDungeonNetworkPrefab()
         {
             var prefabPath = "Assets/Prefabs/DungeonNetwork.prefab";
-            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(prefabPath));
 
             var dungeonRoot = new GameObject("DungeonNetwork");
             var dungeonNetwork = dungeonRoot.AddComponent<Frantic.Networking.DungeonNetwork>();
@@ -370,7 +370,7 @@ namespace Frantic.Networking.Editor
                 AssetDatabase.DeleteAsset(prefabPath);
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(prefabPath));
 
             var playerRoot = new GameObject("Player");
 
@@ -409,7 +409,7 @@ namespace Frantic.Networking.Editor
         public static void CreateEnemyPrefab()
         {
             var prefabPath = "Assets/Prefabs/Enemy.prefab";
-            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(prefabPath));
 
             var enemyRoot = new GameObject("Enemy");
 
@@ -435,7 +435,7 @@ namespace Frantic.Networking.Editor
         public static void CreateRoomPrefab()
         {
             var prefabPath = "Assets/Prefabs/Room.prefab";
-            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(prefabPath));
 
             var roomRoot = new GameObject("Room");
 
@@ -466,7 +466,7 @@ namespace Frantic.Networking.Editor
                 return;
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(prefabPath));
 
             var projRoot = new GameObject("Projectile");
 
@@ -486,7 +486,7 @@ namespace Frantic.Networking.Editor
         public static void CreateLootPrefab()
         {
             var prefabPath = "Assets/Prefabs/Loot.prefab";
-            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(prefabPath));
 
             var lootRoot = new GameObject("Loot");
 
@@ -511,7 +511,7 @@ namespace Frantic.Networking.Editor
         public static void CreateDungeonExitPrefab()
         {
             var prefabPath = "Assets/Prefabs/DungeonExit.prefab";
-            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(prefabPath));
 
             var exitRoot = new GameObject("DungeonExit");
             exitRoot.tag = "DungeonExit";

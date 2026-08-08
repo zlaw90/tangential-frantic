@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &889912241609788985
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4140984017674775408}
+  - component: {fileID: 8275924035744065780}
+  m_Layer: 0
+  m_Name: _Path
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4140984017674775408
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 889912241609788985}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8275924035744065780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 889912241609788985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d156822b628d560478e41b0579132791, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Path
+  PathGroups:
+  - {fileID: 11400000, guid: 99d4fbae73b7561428b620e1fecb962c, type: 2}
+  - {fileID: 11400000, guid: 90c7ff805a95d2b4abf42ac2cc0788af, type: 2}
+  - {fileID: 11400000, guid: c5878db7a503b63469e236ae3cd467a0, type: 2}
+  - {fileID: 11400000, guid: a8715a8508655af478f21b07b8f52bed, type: 2}
+  - {fileID: 11400000, guid: d63e8a79666e44e4f96b5ad4603a0f03, type: 2}
+  - {fileID: 11400000, guid: f1cae97d91751e247a98eeaa855ce494, type: 2}
+  - {fileID: 11400000, guid: ab260198cfed0dc4ba81c3b9e79844b5, type: 2}
+  - {fileID: 11400000, guid: c3f902347478753488463fe5d19e16cc, type: 2}
+  - {fileID: 11400000, guid: 4c3b1c71240cb284fb3c091d55c5d937, type: 2}
+  - {fileID: 11400000, guid: 295dc90f18852f54ba5223f94bbc8d31, type: 2}
+  - {fileID: 11400000, guid: 80e7a0c6021643544aaf684f89c2415c, type: 2}
+  - {fileID: 11400000, guid: 859baf565b3b3f94ab41d993f3f550d0, type: 2}
+  tilePrefab: {fileID: 3635809653682691902, guid: 30e50bee324e17247b5b638af28ac978, type: 3}
+  width: 100
+  height: 100
+  scale: 1
+  offset: {x: 0, y: 0}
+  startingPointWaves:
+  - seed: 123
+    frequency: 0.05
+    amplitude: 10
+  startingPointThreshold: 0.75

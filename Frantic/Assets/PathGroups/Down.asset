@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00f09bbd0cfa0a64ca61cfc3f0dfb50b, type: 3}
+  m_Name: Down
+  m_EditorClassIdentifier: Assembly-CSharp::PathGroupPreset
+  mazeTilePrefabs:
+  - {fileID: 6460250755881525899, guid: ed79aa352cde313479b5f27b33155af4, type: 3}
+  ConnectionDirections: 4
