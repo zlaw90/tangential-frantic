@@ -15,5 +15,12 @@ namespace Frantic.Networking
         {
             _playerInput = playerInput;
         }
+
+        public static Vector2 GetMouseWorldDirection(Camera mainCamera)
+        {
+            var mouseScreenPos = Mouse.current.position.ReadValue();
+            var mouseWorldPos = mainCamera.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 10f));
+            return (mouseWorldPos - Vector3.zero).normalized;
+        }
     }
 }

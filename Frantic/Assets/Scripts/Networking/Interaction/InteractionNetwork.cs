@@ -24,15 +24,17 @@ namespace Frantic.Networking
 
         private void CheckInteraction()
         {
+            Debug.Log($"[Interaction] Checking around player at {transform.position} range={_interactionRange}");
+
             var nearbyObjects = Physics2D.OverlapCircleAll(transform.position, _interactionRange);
             Debug.Log($"[Interaction] Found {nearbyObjects.Length} colliders in range");
 
             foreach (var collider in nearbyObjects)
             {
-                Debug.Log($"[Interaction] Collider: {collider.name} tag={collider.tag}");
+                Debug.Log($"[Interaction] Collider: {collider.name} tag={collider.tag} layer={LayerMask.LayerToName(collider.gameObject.layer)}");
                 if (collider.CompareTag(_interactionTag))
                 {
-                    Debug.Log($"[Interaction] Found {collider.name}, requesting ready");
+                    Debug.Log($"[Interaction] MATCH! Found {collider.name}, requesting ready");
                     var playerNetwork = GetComponent<PlayerNetwork>();
                     playerNetwork?.InteractServerRpc();
                     return;

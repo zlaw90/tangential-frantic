@@ -18,60 +18,37 @@ namespace Frantic.Networking.Editor
         static Sprite _graySprite;
         static Sprite _yellowSprite;
         static Sprite _blueSprite;
-        static bool _spritesInitialized;
 
-        static Sprite GetSprite(Color color, string name)
+        static Sprite GetSprite(string name)
         {
-            var texturePath = "Assets/Sprites/Temp_" + ((int)(color.r * 255)).ToString("X2") + ((int)(color.g * 255)).ToString("X2") + ((int)(color.b * 255)).ToString("X2") + ".png";
             var spritePath = "Assets/Sprites/" + name + ".sprite";
-            System.IO.Directory.CreateDirectory("Assets/Sprites");
-
             var existingSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
-            if (existingSprite != null) return existingSprite;
-
-            var texture = new Texture2D(256, 256, TextureFormat.RGBA32, false);
-            var pixels = new Color[256 * 256];
-            for (int i = 0; i < pixels.Length; i++)
+            if (existingSprite == null)
             {
-                pixels[i] = color;
+                Debug.LogWarning("[Setup] Sprite not found: " + spritePath + " — assign it manually in the prefab");
             }
-            texture.SetPixels(pixels);
-            texture.Apply();
-
-            var bytes = texture.EncodeToPNG();
-            File.WriteAllBytes(texturePath, bytes);
-            AssetDatabase.ImportAsset(texturePath);
-            AssetDatabase.Refresh();
-
-            var loadedTexture = new Texture2D(256, 256, TextureFormat.RGBA32, false);
-            loadedTexture.LoadImage(bytes);
-            var sprite = Sprite.Create(loadedTexture, new Rect(0, 0, 256, 256), new Vector2(0.5f, 0.5f), 128f);
-            AssetDatabase.CreateAsset(sprite, spritePath);
-            AssetDatabase.SaveAssets();
-
-            Debug.Log("[Setup] Created sprite " + name + " at " + spritePath);
-            return sprite;
+            return existingSprite;
         }
 
-        static Sprite GreenSprite => _greenSprite ??= GetSprite(Color.green, "Green");
-        static Sprite RedSprite => _redSprite ??= GetSprite(Color.red, "Red");
-        static Sprite GraySprite => _graySprite ??= GetSprite(Color.gray, "Gray");
-        static Sprite YellowSprite => _yellowSprite ??= GetSprite(Color.yellow, "Yellow");
-        static Sprite BlueSprite => _blueSprite ??= GetSprite(Color.blue, "Blue");
+        static Sprite GreenSprite => _greenSprite ??= GetSprite("Green");
+        static Sprite RedSprite => _redSprite ??= GetSprite("Red");
+        static Sprite GraySprite => _graySprite ??= GetSprite("Gray");
+        static Sprite YellowSprite => _yellowSprite ??= GetSprite("Yellow");
+        static Sprite BlueSprite => _blueSprite ??= GetSprite("Blue");
 
         [MenuItem("Frantic/Setup All")]
         public static void SetupEverything()
         {
             ClearOldAssets();
             CreateHubScene();
+            CreateEnemyPrefab();
+            CreateRoomPrefab();
+            CreateDungeonExitPrefab();
             CreateDungeonNetworkPrefab();
             CreateDungeonScene();
             CreatePlayerPrefab();
-            CreateEnemyPrefab();
-            CreateRoomPrefab();
             CreateProjectilePrefab();
             CreateLootPrefab();
-            CreateDungeonExitPrefab();
             RegisterAllPrefabs();
             AddScenesToBuildSettings();
 
@@ -80,26 +57,6 @@ namespace Frantic.Networking.Editor
 
         static void ClearOldAssets()
         {
-            if (AssetDatabase.IsValidFolder("Assets/Sprites"))
-            {
-                AssetDatabase.DeleteAsset("Assets/Sprites");
-            }
-
-            var spriteColors = new[] { Color.green, Color.red, Color.gray, Color.yellow, Color.blue };
-            foreach (var c in spriteColors)
-            {
-                var path = "Assets/Sprites/Temp_" + ((int)(c.r * 255)).ToString("X2") + ((int)(c.g * 255)).ToString("X2") + ((int)(c.b * 255)).ToString("X2") + ".png";
-                if (File.Exists(path)) File.Delete(path);
-            }
-
-            var spriteNames = new[] { "Green", "Red", "Gray", "Yellow", "Blue" };
-            foreach (var name in spriteNames)
-            {
-                var path = "Assets/Sprites/" + name + ".sprite";
-                if (File.Exists(path)) File.Delete(path);
-            }
-
-            AssetDatabase.Refresh();
         }
 
         [MenuItem("Frantic/Setup Hub Scene")]
@@ -131,6 +88,11 @@ namespace Frantic.Networking.Editor
             var entranceSpriteRenderer = entrance.AddComponent<SpriteRenderer>();
             entranceSpriteRenderer.sprite = BlueSprite;
             entranceSpriteRenderer.sortingOrder = 5;
+
+            if (BlueSprite == null)
+            {
+                Debug.LogWarning("[Setup] No Blue sprite found — Dungeon Entrance will be invisible. Create Assets/Sprites/Blue.sprite");
+            }
 
             var camera = new GameObject("MainCamera");
             camera.tag = "MainCamera";
@@ -286,6 +248,11 @@ namespace Frantic.Networking.Editor
             enemySpriteRenderer.sprite = RedSprite;
             enemySpriteRenderer.sortingOrder = 10;
 
+            if (RedSprite == null)
+            {
+                Debug.LogWarning("[Setup] No Red sprite found — Enemy will be invisible. Create Assets/Sprites/Red.sprite");
+            }
+
             var enemyNetwork = enemyRoot.AddComponent<Frantic.Networking.EnemyNetwork>();
             var lootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Loot.prefab");
             if (lootPrefab != null) enemyNetwork._lootPrefab = lootPrefab;
@@ -320,6 +287,11 @@ namespace Frantic.Networking.Editor
             var roomSpriteRenderer = roomRoot.AddComponent<SpriteRenderer>();
             roomSpriteRenderer.sprite = GraySprite;
             roomSpriteRenderer.sortingOrder = 0;
+
+            if (GraySprite == null)
+            {
+                Debug.LogWarning("[Setup] No Gray sprite found — Rooms will be invisible. Create Assets/Sprites/Gray.sprite");
+            }
 
             PrefabUtility.SaveAsPrefabAsset(roomRoot, prefabPath);
             GameObject.DestroyImmediate(roomRoot);

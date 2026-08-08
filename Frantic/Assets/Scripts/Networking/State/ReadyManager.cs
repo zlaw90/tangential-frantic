@@ -14,23 +14,33 @@ namespace Frantic.Networking
 
         public void SetReady(ulong clientId, bool ready)
         {
-            if (!IsServer()) return;
+            if (!IsServer())
+            {
+                Debug.LogError("[Ready] SetReady called but not on server!");
+                return;
+            }
 
-            var totalPlayers = FranticNetworkManager.Instance?.ConnectedClientsList.Count ?? 0;
-            Debug.Log($"[Ready] SetReady called: clientId={clientId}, ready={ready}, totalPlayers={totalPlayers}");
+            var nm = FranticNetworkManager.Instance;
+            var totalPlayers = nm?.ConnectedClientsList.Count ?? 0;
+            Debug.Log($"[Ready] SetReady: clientId={clientId}, ready={ready}, totalPlayers={totalPlayers}, isConnected={nm?.IsConnectedClient}");
 
             _readyStates[clientId] = ready;
             var readyCount = _readyStates.Values.Count(v => v);
-            Debug.Log($"[Ready] Ready states: {readyCount}/{totalPlayers}");
+            Debug.Log($"[Ready] Ready states dict size={_readyStates.Count}, readyCount={readyCount}/{totalPlayers}");
+
+            foreach (var kvp in _readyStates)
+            {
+                Debug.Log($"[Ready]   Client {kvp.Key}: {kvp.Value}");
+            }
 
             if (readyCount >= totalPlayers && totalPlayers > 0)
             {
-                Debug.Log("[Ready] All players ready, starting countdown");
+                Debug.Log("[Ready] ALL PLAYERS READY! Starting countdown");
                 StartCountdown();
             }
             else
             {
-                Debug.Log($"[Ready] Not all players ready yet ({readyCount}/{totalPlayers})");
+                Debug.Log($"[Ready] NOT ready yet ({readyCount}/{totalPlayers})");
             }
         }
 
@@ -60,14 +70,15 @@ namespace Frantic.Networking
             if (_countdownTimer <= 0f)
             {
                 Debug.Log("[Ready] Countdown finished, starting dungeon");
-                var gameManager = GetComponent<GameManager>();
+                var gameManagers = FindObjectsByType<GameManager>(FindObjectsSortMode.None);
+                GameManager gameManager = gameManagers.Length > 0 ? gameManagers[0] : null;
                 if (gameManager != null)
                 {
                     gameManager.StartDungeon();
                 }
                 else
                 {
-                    Debug.LogError("[Ready] GameManager not found on ReadyManager!");
+                    Debug.LogError("[Ready] GameManager not found in scene!");
                 }
                 _countdownActive = false;
             }

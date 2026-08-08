@@ -29,14 +29,24 @@ namespace Frantic.Networking
 
         public void RequestReady(ulong callerId)
         {
-            Debug.Log($"[GameManager] Player {callerId} readying up");
+            Debug.Log($"[GameManager] RequestReady called: callerId={callerId}, currentState={_currentState}");
 
-            if (_currentState != GameState.Hub) return;
+            if (_currentState != GameState.Hub)
+            {
+                Debug.LogWarning($"[GameManager] Cannot ready up in state {_currentState}");
+                return;
+            }
 
-            var readyManager = GetComponent<ReadyManager>();
+            var readyManagers = FindObjectsByType<ReadyManager>(FindObjectsSortMode.None);
+            ReadyManager readyManager = readyManagers.Length > 0 ? readyManagers[0] : null;
             if (readyManager != null)
             {
+                Debug.Log($"[GameManager] Calling readyManager.SetReady({callerId}, true)");
                 readyManager.SetReady(callerId, true);
+            }
+            else
+            {
+                Debug.LogError("[GameManager] ReadyManager not found in scene!");
             }
         }
 
@@ -48,7 +58,8 @@ namespace Frantic.Networking
             _currentState = GameState.ReadyCountdown;
             OnStateChanged?.Invoke(_currentState);
 
-            var readyManager = GetComponent<ReadyManager>();
+            var readyManagers = FindObjectsByType<ReadyManager>(FindObjectsSortMode.None);
+            ReadyManager readyManager = readyManagers.Length > 0 ? readyManagers[0] : null;
             if (readyManager != null)
             {
                 readyManager.StartCountdown();

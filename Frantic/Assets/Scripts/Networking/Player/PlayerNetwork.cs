@@ -36,8 +36,14 @@ namespace Frantic.Networking
 
             if (InputManager.Fire && _combat != null)
             {
-                Debug.Log($"[Player] Fire pressed, move={InputManager.Move}");
-                _combat.FireWeaponServerRpc(InputManager.Move);
+                var mainCamera = Camera.main;
+                if (mainCamera != null)
+                {
+                    var mouseWorldPos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+                    var direction = (mouseWorldPos - transform.position).normalized;
+                    Debug.Log($"[Player] Fire pressed direction={direction}");
+                    _combat.FireWeaponServerRpc(new Vector2(direction.x, direction.y));
+                }
             }
         }
 

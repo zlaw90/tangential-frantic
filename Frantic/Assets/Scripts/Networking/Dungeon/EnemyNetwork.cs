@@ -48,7 +48,7 @@ namespace Frantic.Networking
 
         private void FindNearestPlayer()
         {
-            var players = FindObjectsOfType<PlayerNetwork>();
+            var players = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
             if (players.Length == 0) return;
 
             float nearestDistance = float.MaxValue;

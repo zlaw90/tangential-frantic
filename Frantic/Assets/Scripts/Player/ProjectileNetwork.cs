@@ -21,6 +21,8 @@ namespace Frantic.Networking
         {
             _direction = direction.normalized;
             _owner = owner;
+            var angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg - 90f;
+            transform.rotation = Quaternion.Euler(0, 0, angle);
             Destroy(gameObject, _lifetime);
             Debug.Log($"[Projectile] Initialize called dir={_direction} speed={_speed} lifetime={_lifetime}");
         }
@@ -30,8 +32,6 @@ namespace Frantic.Networking
             if (!IsServer) return;
 
             transform.position += _direction * _speed * Time.deltaTime;
-
-            Debug.Log($"[Projectile] Moving dir={_direction} speed={_speed} pos={transform.position}");
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
