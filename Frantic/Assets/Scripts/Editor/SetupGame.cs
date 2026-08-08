@@ -144,8 +144,8 @@ namespace Frantic.Networking.Editor
             menuPanel.transform.localPosition = Vector3.zero;
 
             var panelRect = menuPanel.AddComponent<RectTransform>();
-            panelRect.anchorMin = Vector2.zero;
-            panelRect.anchorMax = Vector2.zero;
+            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.pivot = new Vector2(0.5f, 0.5f);
             panelRect.sizeDelta = new Vector2(400f, 300f);
             panelRect.anchoredPosition = Vector2.zero;
@@ -226,8 +226,8 @@ namespace Frantic.Networking.Editor
             var healthBarRect = healthBarGO.AddComponent<RectTransform>();
             healthBarRect.anchoredPosition = new Vector2(-100f, -30f);
             healthBarRect.sizeDelta = new Vector2(150f, 20f);
-            healthBarRect.anchorMin = Vector2.zero;
-            healthBarRect.anchorMax = Vector2.zero;
+            healthBarRect.anchorMin = new Vector2(0.5f, 0.5f);
+            healthBarRect.anchorMax = new Vector2(0.5f, 0.5f);
             healthBarRect.pivot = new Vector2(0.5f, 0.5f);
 
             var healthBarImage = healthBarGO.AddComponent<Image>();
@@ -252,8 +252,8 @@ namespace Frantic.Networking.Editor
             var ammoTextRect = ammoTextGO.AddComponent<RectTransform>();
             ammoTextRect.anchoredPosition = new Vector2(100f, -30f);
             ammoTextRect.sizeDelta = new Vector2(100f, 30f);
-            ammoTextRect.anchorMin = Vector2.zero;
-            ammoTextRect.anchorMax = Vector2.zero;
+            ammoTextRect.anchorMin = new Vector2(0.5f, 0.5f);
+            ammoTextRect.anchorMax = new Vector2(0.5f, 0.5f);
             ammoTextRect.pivot = new Vector2(0.5f, 0.5f);
 
             var ammoText = ammoTextGO.AddComponent<TextMeshProUGUI>();
@@ -267,8 +267,8 @@ namespace Frantic.Networking.Editor
             var readyTextRect = readyTextGO.AddComponent<RectTransform>();
             readyTextRect.anchoredPosition = new Vector2(0f, 80f);
             readyTextRect.sizeDelta = new Vector2(200f, 30f);
-            readyTextRect.anchorMin = Vector2.zero;
-            readyTextRect.anchorMax = Vector2.zero;
+            readyTextRect.anchorMin = new Vector2(0.5f, 0.5f);
+            readyTextRect.anchorMax = new Vector2(0.5f, 0.5f);
             readyTextRect.pivot = new Vector2(0.5f, 0.5f);
 
             var readyText = readyTextGO.AddComponent<TextMeshProUGUI>();
@@ -292,8 +292,8 @@ namespace Frantic.Networking.Editor
             var rectTransform = buttonGO.AddComponent<RectTransform>();
             rectTransform.anchoredPosition = anchoredPosition;
             rectTransform.sizeDelta = size;
-            rectTransform.anchorMin = Vector2.zero;
-            rectTransform.anchorMax = Vector2.zero;
+            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             rectTransform.pivot = new Vector2(0.5f, 0.5f);
 
             var buttonImage = buttonGO.AddComponent<Image>();
@@ -325,8 +325,8 @@ namespace Frantic.Networking.Editor
             var rectTransform = inputGO.AddComponent<RectTransform>();
             rectTransform.anchoredPosition = anchoredPosition;
             rectTransform.sizeDelta = size;
-            rectTransform.anchorMin = Vector2.zero;
-            rectTransform.anchorMax = Vector2.zero;
+            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             rectTransform.pivot = new Vector2(0.5f, 0.5f);
 
             var inputImage = inputGO.AddComponent<Image>();
@@ -346,8 +346,8 @@ namespace Frantic.Networking.Editor
             var rectTransform = textGO.AddComponent<RectTransform>();
             rectTransform.anchoredPosition = anchoredPosition;
             rectTransform.sizeDelta = size;
-            rectTransform.anchorMin = Vector2.zero;
-            rectTransform.anchorMax = Vector2.zero;
+            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             rectTransform.pivot = new Vector2(0.5f, 0.5f);
 
             var textComponent = textGO.AddComponent<TextMeshProUGUI>();
