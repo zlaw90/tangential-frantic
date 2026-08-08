@@ -63,7 +63,15 @@ namespace Frantic.Networking
             _currentState = GameState.Dungeon;
             OnStateChanged?.Invoke(_currentState);
 
-            FranticNetworkManager.Instance?.LoadDungeonScene();
+            if (FranticNetworkManager.Instance != null)
+            {
+                Debug.Log("[GameManager] Loading dungeon scene via NetworkManager");
+                FranticNetworkManager.Instance.LoadDungeonScene();
+            }
+            else
+            {
+                Debug.LogError("[GameManager] FranticNetworkManager.Instance is NULL!");
+            }
         }
 
         public void CompleteDungeon()

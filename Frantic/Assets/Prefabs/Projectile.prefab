@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 808863816356611915}
   - component: {fileID: 4369756840767632912}
   - component: {fileID: 2074753824661750207}
+  - component: {fileID: 4358361745297377696}
   - component: {fileID: 8152049834098928367}
   m_Layer: 0
   m_Name: Projectile
@@ -171,6 +172,22 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.15
+--- !u!114 &4358361745297377696
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 948847647396987916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bdcf86d88637dd40b17a12e588b20a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Frantic.Networking.ProjectileNetwork
+  ShowTopMostFoldoutHeaderGroup: 1
+  _speed: 20
+  _damage: 10
+  _lifetime: 3
 --- !u!212 &8152049834098928367
 SpriteRenderer:
   serializedVersion: 2
@@ -220,12 +237,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 20
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  m_Color: {r: 1, g: 0, b: 0.8144698, a: 1}
+  m_Sprite: {fileID: 3625043607559282579, guid: 9a3ada5a7776dad479faf1b96280793d, type: 3}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2, y: 2}
+  m_Size: {x: 1, y: 0.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

@@ -185,8 +185,9 @@ namespace Frantic.Networking.Editor
             var dungeonPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonNetwork.prefab");
             if (dungeonPrefab != null)
             {
-                var dungeonInstance = EditorSceneManager.InstantiateSceneObject(dungeonPrefab, Vector3.zero, Quaternion.identity, scene);
+                var dungeonInstance = GameObject.Instantiate(dungeonPrefab);
                 dungeonInstance.name = "DungeonNetwork";
+                EditorSceneManager.MoveGameObjectToScene(dungeonInstance, scene);
             }
             else
             {
@@ -215,12 +216,17 @@ namespace Frantic.Networking.Editor
         public static void CreatePlayerPrefab()
         {
             var prefabPath = "Assets/Prefabs/Player.prefab";
+
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (existing != null)
+            {
+                Debug.Log("[Setup] Player prefab already exists, skipping creation");
+                return;
+            }
+
             Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
 
             var playerRoot = new GameObject("Player");
-
-            if (playerRoot.GetComponent<MeshRenderer>() != null) GameObject.DestroyImmediate(playerRoot.GetComponent<MeshRenderer>());
-            if (playerRoot.GetComponent<MeshFilter>() != null) GameObject.DestroyImmediate(playerRoot.GetComponent<MeshFilter>());
 
             playerRoot.AddComponent<NetworkObject>();
             var networkTransform = playerRoot.AddComponent<NetworkTransform>();
@@ -231,10 +237,6 @@ namespace Frantic.Networking.Editor
             var rb = playerRoot.AddComponent<Rigidbody2D>();
             rb.gravityScale = 0f;
             playerRoot.AddComponent<CircleCollider2D>().radius = 0.5f;
-
-            var spriteRenderer = playerRoot.AddComponent<SpriteRenderer>();
-            spriteRenderer.sprite = GreenSprite;
-            spriteRenderer.sortingOrder = 10;
 
             var playerInput = playerRoot.AddComponent<PlayerInput>();
             var inputActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
@@ -332,12 +334,17 @@ namespace Frantic.Networking.Editor
         public static void CreateProjectilePrefab()
         {
             var prefabPath = "Assets/Prefabs/Projectile.prefab";
+
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (existing != null)
+            {
+                Debug.Log("[Setup] Projectile prefab already exists, skipping creation");
+                return;
+            }
+
             Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
 
             var projRoot = new GameObject("Projectile");
-
-            if (projRoot.GetComponent<MeshRenderer>() != null) GameObject.DestroyImmediate(projRoot.GetComponent<MeshRenderer>());
-            if (projRoot.GetComponent<MeshFilter>() != null) GameObject.DestroyImmediate(projRoot.GetComponent<MeshFilter>());
 
             projRoot.AddComponent<NetworkObject>();
             var networkTransform = projRoot.AddComponent<NetworkTransform>();
@@ -346,10 +353,6 @@ namespace Frantic.Networking.Editor
             networkTransform.UseQuaternionSynchronization = false;
             projRoot.AddComponent<Rigidbody2D>().gravityScale = 0f;
             projRoot.AddComponent<CircleCollider2D>().radius = 0.15f;
-
-            var projSpriteRenderer = projRoot.AddComponent<SpriteRenderer>();
-            projSpriteRenderer.sprite = YellowSprite;
-            projSpriteRenderer.sortingOrder = 20;
 
             PrefabUtility.SaveAsPrefabAsset(projRoot, prefabPath);
             GameObject.DestroyImmediate(projRoot);
@@ -483,13 +486,12 @@ namespace Frantic.Networking.Editor
         {
             var scenesToAdd = new[] { "Assets/Scenes/Hub.unity", "Assets/Scenes/Dungeon.unity" };
 
-            var existingScenes = BuildPipeline.GetBuildPlayerSceneCollection(scenesToAdd, null).scenes.ToList();
             var toAdd = new List<EditorBuildSettingsScene>();
 
             foreach (var scenePath in scenesToAdd)
             {
                 var alreadyExists = false;
-                foreach (var existing in existingScenes)
+                foreach (var existing in EditorBuildSettings.scenes)
                 {
                     if (existing.path == scenePath)
                     {

@@ -8,7 +8,10 @@ namespace Frantic.Networking
         private Transform _target;
 
         [SerializeField]
-        private float _smoothSpeed = 5f;
+        private float _smoothSpeed = 10f;
+
+        [SerializeField]
+        private Vector3 _offset = new Vector3(0f, 0f, -10f);
 
         private void LateUpdate()
         {
@@ -19,10 +22,13 @@ namespace Frantic.Networking
                 {
                     _target = player.transform;
                 }
-                return;
+                else
+                {
+                    return;
+                }
             }
 
-            var desiredPosition = new Vector3(_target.position.x, _target.position.y, transform.position.z);
+            var desiredPosition = _target.position + _offset;
             transform.position = Vector3.Lerp(transform.position, desiredPosition, _smoothSpeed * Time.deltaTime);
         }
 

@@ -92,7 +92,7 @@ MonoBehaviour:
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  m_InScenePlaced: 1
+  m_InScenePlaced: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
@@ -258,12 +258,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 10
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Color: {r: 0.12688327, g: 1, b: 0, a: 1}
+  m_Sprite: {fileID: -9095717837082945937, guid: fbbab18fca6786e439f80cbd171ab2b5, type: 3}
+  m_Color: {r: 0, g: 1, b: 0.10735226, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2, y: 2}
+  m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -311,7 +311,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Frantic.Networking.PlayerNetwork
   ShowTopMostFoldoutHeaderGroup: 1
-  weaponTip: {fileID: 0}
+  weaponTip: {fileID: 1972886583466538249}
 --- !u!114 &977125175222564629
 MonoBehaviour:
   m_ObjectHideFlags: 0

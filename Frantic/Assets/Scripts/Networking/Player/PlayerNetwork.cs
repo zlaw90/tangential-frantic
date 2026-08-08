@@ -36,6 +36,7 @@ namespace Frantic.Networking
 
             if (InputManager.Fire && _combat != null)
             {
+                Debug.Log($"[Player] Fire pressed, move={InputManager.Move}");
                 _combat.FireWeaponServerRpc(InputManager.Move);
             }
         }

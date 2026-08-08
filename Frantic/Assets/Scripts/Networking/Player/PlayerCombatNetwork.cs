@@ -87,15 +87,21 @@ namespace Frantic.Networking
 
             if (_projectilePrefab != null)
             {
-                var projectile = GameObject.Instantiate(_projectilePrefab, position, Quaternion.identity);
+                var projectile = Instantiate(_projectilePrefab, position, Quaternion.identity);
                 var networkObject = projectile.GetComponent<NetworkObject>();
                 if (networkObject == null)
                 {
                     networkObject = projectile.AddComponent<NetworkObject>();
+                    Debug.Log("[Combat] Added NetworkObject to projectile");
                 }
                 networkObject.Spawn(true);
                 var projectileNetwork = projectile.GetComponent<ProjectileNetwork>();
-                projectileNetwork?.Initialize(direction, gameObject);
+                if (projectileNetwork == null)
+                {
+                    projectileNetwork = projectile.AddComponent<ProjectileNetwork>();
+                    Debug.Log("[Combat] Added ProjectileNetwork to projectile");
+                }
+                projectileNetwork.Initialize(direction, gameObject);
                 Debug.Log($"[Spawn] Projectile spawned at {position}");
             }
             else

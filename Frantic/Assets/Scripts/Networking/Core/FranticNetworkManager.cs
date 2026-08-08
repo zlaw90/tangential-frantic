@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Unity.Netcode;
 
 namespace Frantic.Networking
@@ -28,53 +27,6 @@ namespace Frantic.Networking
         private void Start()
         {
             OnClientDisconnectCallback += OnClientDisconnect;
-            SceneManager.sceneLoaded += OnSceneLoaded;
-        }
-
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            Debug.Log($"[Network] Scene loaded: {scene.name}");
-
-            if (IsHost || IsServer)
-            {
-                SpawnPlayersForScene(scene.name);
-            }
-        }
-
-        private void SpawnPlayersForScene(string sceneName)
-        {
-            if (sceneName == DUNGEON_SCENE)
-            {
-                Debug.Log("[Network] Spawning players for dungeon");
-                foreach (var client in ConnectedClients.Values)
-                {
-                    if (client.PlayerObject != null)
-                    {
-                        Debug.Log($"[Network] Destroying old player for client {client.ClientId}");
-                        client.PlayerObject.Despawn();
-                        GameObject.Destroy(client.PlayerObject.gameObject);
-                    }
-
-                    Debug.Log($"[Network] Spawning new player for client {client.ClientId}");
-                    SpawnPlayer(client, Vector3.zero, Quaternion.identity, 0);
-                }
-            }
-            else if (sceneName == HUB_SCENE)
-            {
-                Debug.Log("[Network] Spawning players for hub");
-                foreach (var client in ConnectedClients.Values)
-                {
-                    if (client.PlayerObject != null)
-                    {
-                        Debug.Log($"[Network] Destroying old player for client {client.ClientId}");
-                        client.PlayerObject.Despawn();
-                        GameObject.Destroy(client.PlayerObject.gameObject);
-                    }
-
-                    Debug.Log($"[Network] Spawning new player for client {client.ClientId}");
-                    SpawnPlayer(client, Vector3.zero, Quaternion.identity, 0);
-                }
-            }
         }
 
         private void OnDestroy()
@@ -134,11 +86,16 @@ namespace Frantic.Networking
 
         public void LoadDungeonScene()
         {
-            if (!IsHost) return;
+            if (!IsHost)
+            {
+                Debug.LogWarning("[Network] LoadDungeonScene called but not host");
+                return;
+            }
             if (_isShuttingDown) return;
 
             Debug.Log("[Network] Host loading dungeon scene");
             UnityEngine.SceneManagement.SceneManager.LoadScene(DUNGEON_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            Debug.Log("[Network] Dungeon scene load initiated");
         }
 
         public void LoadHubScene()

@@ -17,6 +17,7 @@ namespace Frantic.Networking
 
             if (InputManager.Interact)
             {
+                Debug.Log($"[Interaction] Interact pressed, checking range {_interactionRange}");
                 CheckInteraction();
             }
         }
@@ -24,9 +25,11 @@ namespace Frantic.Networking
         private void CheckInteraction()
         {
             var nearbyObjects = Physics2D.OverlapCircleAll(transform.position, _interactionRange);
+            Debug.Log($"[Interaction] Found {nearbyObjects.Length} colliders in range");
 
             foreach (var collider in nearbyObjects)
             {
+                Debug.Log($"[Interaction] Collider: {collider.name} tag={collider.tag}");
                 if (collider.CompareTag(_interactionTag))
                 {
                     Debug.Log($"[Interaction] Found {collider.name}, requesting ready");
@@ -35,6 +38,8 @@ namespace Frantic.Networking
                     return;
                 }
             }
+
+            Debug.LogWarning("[Interaction] No dungeon entrance found in range");
         }
     }
 }

@@ -8,13 +8,13 @@ namespace Frantic.Networking
     public class DungeonNetwork : NetworkBehaviour
     {
         [SerializeField]
-        internal GameObject _roomPrefab;
+        public GameObject _roomPrefab;
 
         [SerializeField]
-        internal GameObject _enemyPrefab;
+        public GameObject _enemyPrefab;
 
         [SerializeField]
-        internal GameObject _dungeonExitPrefab;
+        public GameObject _dungeonExitPrefab;
 
         [SerializeField]
         private int _minRooms = 5;

@@ -18,7 +18,7 @@ namespace Frantic.Networking
         private int _attackDamage = 10;
 
         [SerializeField]
-        internal GameObject _lootPrefab;
+        public GameObject _lootPrefab;
 
         [SerializeField]
         private float _lootDropChance = 0.5f;
