@@ -8,6 +8,8 @@ public class Map : MonoBehaviour
     public GameObject tilePrefab;
     public GameObject navMesh;
     public GameObject dummy;
+    public GameObject playerDummy;
+
     public int generationSeed;
 
     [Header("Dimensions")]
@@ -30,6 +32,9 @@ public class Map : MonoBehaviour
 
         var pathDirectionsMap = new WilsonMazeGenerator().GenerateMaze(width, height, generationSeed);
 
+        var xScale = transform.localScale.x;
+        var yScale = transform.localScale.y;
+
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -46,7 +51,7 @@ public class Map : MonoBehaviour
 
                 GameObject mazeTilePrefab = pathGroup.GetMazeTilePrefab();
 
-                GameObject tile = Instantiate(mazeTilePrefab, new Vector3(x, y, 0), Quaternion.identity, this.transform);
+                GameObject tile = Instantiate(mazeTilePrefab, new Vector3(x * xScale, y * yScale, 0), Quaternion.identity, this.transform);
 
                 if (x == playerSpawnX && y == playerSpawnY)
                 {
@@ -55,27 +60,19 @@ public class Map : MonoBehaviour
             }
         }
 
+        playerDummy.transform.position = new Vector3(xScale * playerSpawnX, yScale * playerSpawnY, 0);
 
         var navsurface = navMesh.GetComponent<NavMeshPlus.Components.NavMeshSurface>();
         navsurface.BuildNavMesh();
-        var foo1 = navsurface.navMeshData;
-        var foo2 = navsurface.navMeshDataInstance;
 
         var agent = dummy.GetComponent<NavMeshAgent>();
         agent.updateRotation = false;
         agent.updateUpAxis = false;
-        agent.SetDestination(new Vector3(playerSpawnX, playerSpawnY, 0));
+        agent.SetDestination(new Vector3(xScale * playerSpawnX, yScale * playerSpawnY, 0));
     }
 
     private PathGroupPreset GetPathGroupPreset(PathDirections pathDirections)
     {
         return PathGroups.First(t => t.MatchExact(pathDirections));
     }
-
-
-
-    //// Update is called once per frame
-    //void Update()
-    //{
-    //}
 }
