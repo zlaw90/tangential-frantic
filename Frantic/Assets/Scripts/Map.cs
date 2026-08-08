@@ -1,10 +1,13 @@
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Map : MonoBehaviour
 {
     public PathGroupPreset[] PathGroups;
     public GameObject tilePrefab;
+    public GameObject navMesh;
+    public GameObject dummy;
     public int generationSeed;
 
     [Header("Dimensions")]
@@ -51,6 +54,17 @@ public class Map : MonoBehaviour
                 }
             }
         }
+
+
+        var navsurface = navMesh.GetComponent<NavMeshPlus.Components.NavMeshSurface>();
+        navsurface.BuildNavMesh();
+        var foo1 = navsurface.navMeshData;
+        var foo2 = navsurface.navMeshDataInstance;
+
+        var agent = dummy.GetComponent<NavMeshAgent>();
+        agent.updateRotation = false;
+        agent.updateUpAxis = false;
+        agent.SetDestination(new Vector3(playerSpawnX, playerSpawnY, 0));
     }
 
     private PathGroupPreset GetPathGroupPreset(PathDirections pathDirections)
