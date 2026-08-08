@@ -1,9 +1,8 @@
 using UnityEngine;
-using Unity.Netcode;
 
 namespace Frantic.Networking
 {
-    public class ProjectileNetwork : NetworkBehaviour
+    public class ProjectileNetwork : MonoBehaviour
     {
         [SerializeField]
         private float _speed = 20f;
@@ -16,6 +15,7 @@ namespace Frantic.Networking
 
         private Vector3 _direction;
         private GameObject _owner;
+        private float _spawnTime;
 
         public void Initialize(Vector3 direction, GameObject owner = null)
         {
@@ -24,31 +24,38 @@ namespace Frantic.Networking
             var angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg - 90f;
             transform.rotation = Quaternion.Euler(0, 0, angle);
             Destroy(gameObject, _lifetime);
+            _spawnTime = Time.time;
         }
 
         private void Update()
         {
-            if (!IsServer) return;
-
             transform.position += _direction * _speed * Time.deltaTime;
         }
 
-        private void OnTriggerEnter2D(Collider2D collision)
+        private void OnCollisionEnter2D(Collision2D collision)
         {
-            if (!IsServer) return;
-
-            var playerHealth = collision.GetComponent<PlayerHealthNetwork>();
-            if (playerHealth != null)
+            if (Time.time - _spawnTime < 0.05f)
             {
-                playerHealth.TakeDamageServerRpc(_damage);
+                return;
+            }
+
+            if (collision.gameObject == _owner)
+            {
+                return;
+            }
+
+            var enemyHealth = collision.gameObject.GetComponent<EnemyNetwork>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.TakeDamage(_damage);
                 Destroy(gameObject);
                 return;
             }
 
-            var enemyHealth = collision.GetComponent<EnemyNetwork>();
-            if (enemyHealth != null)
+            var playerHealth = collision.gameObject.GetComponent<PlayerHealthNetwork>();
+            if (playerHealth != null)
             {
-                enemyHealth.TakeDamageServerRpc(_damage);
+                playerHealth.TakeDamage(_damage);
                 Destroy(gameObject);
                 return;
             }

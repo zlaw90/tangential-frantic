@@ -1,5 +1,5 @@
 using UnityEngine;
-using Unity.Netcode;
+using UnityEngine.UI;
 
 namespace Frantic.Networking
 {
@@ -12,10 +12,10 @@ namespace Frantic.Networking
         private float _moveSpeed = 2f;
 
         [SerializeField]
-        private float _attackRange = 1.5f;
+        private float _attackRange = 1.2f;
 
         [SerializeField]
-        private int _attackDamage = 10;
+        private int _attackDamage = 5;
 
         [SerializeField]
         public GameObject _lootPrefab;
@@ -23,25 +23,107 @@ namespace Frantic.Networking
         [SerializeField]
         private float _lootDropChance = 0.5f;
 
-        private NetworkVariable<int> _networkHealth = new NetworkVariable<int>();
+        [SerializeField]
+        private float _healthBarWidth = 0.8f;
 
+        [SerializeField]
+        private float _healthBarHeight = 0.06f;
+
+        [SerializeField]
+        private float _healthBarOffsetY = 1.0f;
+
+        private int _currentHealth;
         private Transform _targetPlayer;
+        private float _lastRetargetTime;
+        private float _lastAttackTime;
+        private const float RETARGET_INTERVAL = 1f;
+        private const float ATTACK_COOLDOWN = 0.5f;
+        private Image _healthBarImage;
+        private GameObject _healthBarGO;
 
-        public override void OnNetworkSpawn()
+        private void Awake()
         {
-            base.OnNetworkSpawn();
-            _networkHealth.Value = _maxHealth;
+            _currentHealth = _maxHealth;
+            _lastAttackTime = -999f;
             FindNearestPlayer();
+            CreateHealthBar();
+        }
+
+        private void CreateHealthBar()
+        {
+            _healthBarGO = new GameObject("HealthBar");
+            _healthBarGO.transform.SetParent(transform);
+
+            var canvas = _healthBarGO.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+            canvas.worldCamera = Camera.main;
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = 10;
+
+            var rectTransform = _healthBarGO.GetComponent<RectTransform>();
+            rectTransform.sizeDelta = new Vector2(_healthBarWidth, _healthBarHeight);
+            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+            var backgroundGO = new GameObject("Background");
+            backgroundGO.transform.SetParent(_healthBarGO.transform);
+            var bgRect = backgroundGO.AddComponent<RectTransform>();
+            bgRect.sizeDelta = new Vector2(_healthBarWidth + 0.02f, _healthBarHeight + 0.02f);
+            bgRect.anchorMin = Vector2.zero;
+            bgRect.anchorMax = Vector2.one;
+            var bgImage = backgroundGO.AddComponent<Image>();
+            bgImage.color = Color.black;
+            bgImage.raycastTarget = false;
+
+            var healthBarInnerGO = new GameObject("HealthBar");
+            healthBarInnerGO.transform.SetParent(_healthBarGO.transform);
+            var innerRect = healthBarInnerGO.AddComponent<RectTransform>();
+            innerRect.sizeDelta = new Vector2(_healthBarWidth, _healthBarHeight);
+            innerRect.anchorMin = Vector2.zero;
+            innerRect.anchorMax = Vector2.one;
+            _healthBarImage = healthBarInnerGO.AddComponent<Image>();
+            _healthBarImage.color = Color.green;
+
+            UpdateHealthBarPosition();
+        }
+
+        private void UpdateHealthBarPosition()
+        {
+            if (_healthBarGO != null)
+            {
+                _healthBarGO.transform.localPosition = new Vector3(0f, _healthBarOffsetY, 0f);
+            }
+        }
+
+        private void UpdateHealthBarColor()
+        {
+            if (_healthBarImage == null || _healthBarGO == null) return;
+
+            float healthPercent = (float)_currentHealth / _maxHealth;
+            _healthBarImage.color = Color.Lerp(Color.red, Color.green, healthPercent);
+
+            var innerRect = _healthBarImage.GetComponent<RectTransform>();
+            if (innerRect != null)
+            {
+                innerRect.localScale = new Vector3(healthPercent, 1f, 1f);
+            }
         }
 
         private void Update()
         {
-            if (!IsServer) return;
-
             if (_targetPlayer != null)
             {
                 MoveTowardsTarget();
             }
+
+            if (Time.time - _lastRetargetTime > RETARGET_INTERVAL)
+            {
+                FindNearestPlayer();
+                _lastRetargetTime = Time.time;
+            }
+
+            UpdateHealthBarColor();
         }
 
         private void FindNearestPlayer()
@@ -76,55 +158,47 @@ namespace Frantic.Networking
 
         private void AttackPlayer()
         {
+            if (Time.time - _lastAttackTime < ATTACK_COOLDOWN) return;
+
             var playerHealth = _targetPlayer.GetComponent<PlayerHealthNetwork>();
             if (playerHealth != null)
             {
-                playerHealth.TakeDamageServerRpc(_attackDamage);
+                playerHealth.TakeDamage(_attackDamage);
+                _lastAttackTime = Time.time;
             }
         }
 
-        [ServerRpc]
-        public void TakeDamageServerRpc(int damage)
+        public void TakeDamage(int damage)
         {
-            if (!IsServer) return;
-
             if (damage <= 0) return;
 
-            var currentHealth = _networkHealth.Value;
-            currentHealth = Mathf.Max(0, currentHealth - damage);
-            _networkHealth.Value = currentHealth;
+            _currentHealth = Mathf.Max(0, _currentHealth - damage);
+            UpdateHealthBarColor();
 
-            if (currentHealth <= 0)
+            if (_currentHealth <= 0)
             {
-                DieServerRpc();
+                Die();
             }
         }
 
-        [ServerRpc]
-        private void DieServerRpc()
+        private void Die()
         {
             if (Random.value < _lootDropChance && _lootPrefab != null)
             {
                 SpawnLoot();
             }
 
-            if (NetworkObject != null)
+            if (_healthBarGO != null)
             {
-                NetworkObject.Despawn();
+                Destroy(_healthBarGO);
             }
 
-            GameObject.Destroy(gameObject);
+            Destroy(gameObject);
         }
 
         private void SpawnLoot()
         {
-            var loot = GameObject.Instantiate(_lootPrefab, transform.position, Quaternion.identity);
-            var networkObject = loot.GetComponent<NetworkObject>();
-            if (networkObject == null)
-            {
-                networkObject = loot.AddComponent<NetworkObject>();
-            }
-            networkObject.Spawn(true);
+            Instantiate(_lootPrefab, transform.position, Quaternion.identity);
         }
     }
 }

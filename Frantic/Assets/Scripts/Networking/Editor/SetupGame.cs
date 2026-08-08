@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using System.IO;
@@ -10,7 +8,6 @@ using System.Linq;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem;
-using Unity.Netcode.Components;
 
 namespace Frantic.Networking.Editor
 {
@@ -19,60 +16,30 @@ namespace Frantic.Networking.Editor
         [MenuItem("Frantic/Setup All")]
         public static void SetupEverything()
         {
-            ClearOldAssets();
             CreateHubScene();
             SetupConnectionMenu();
             SetupHUD();
+            CreatePlayerPrefab();
+            CreateProjectilePrefab();
+            CreateLootPrefab();
             CreateEnemyPrefab();
             CreateRoomPrefab();
             CreateDungeonExitPrefab();
             CreateDungeonNetworkPrefab();
             CreateDungeonScene();
-            CreatePlayerPrefab();
-            CreateProjectilePrefab();
-            CreateLootPrefab();
-            RegisterAllPrefabs();
             AddScenesToBuildSettings();
 
-            Debug.Log("[Setup] All assets created and registered!");
-        }
-
-        static void ClearOldAssets()
-        {
+            Debug.Log("[Setup] All assets created and configured!");
         }
 
         [MenuItem("Frantic/Setup Hub Scene")]
         public static void CreateHubScene()
         {
-            var hubScene = EditorSceneManager.GetSceneByPath("Assets/Scenes/Hub.unity");
-            if (hubScene.IsValid())
-            {
-                Debug.Log("[Setup] Hub scene already exists, skipping creation");
-                return;
-            }
-
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             EditorSceneManager.SetActiveScene(scene);
 
-            var networkManager = new GameObject("NetworkManager");
-            var nmComponent = networkManager.AddComponent<Frantic.Networking.FranticNetworkManager>();
-
-            var transport = networkManager.AddComponent<UnityTransport>();
-            transport.SetConnectionData("0.0.0.0", 7778);
-            nmComponent.NetworkConfig.NetworkTransport = transport;
-
-            var playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
-            if (playerPrefab != null)
-            {
-                nmComponent.NetworkConfig.PlayerPrefab = playerPrefab;
-                nmComponent._playerPrefabOverride = playerPrefab;
-            }
-
             var gameManager = new GameObject("GameManager");
             gameManager.AddComponent<Frantic.Networking.GameManager>();
-
-            var readyManager = new GameObject("ReadyManager");
-            readyManager.AddComponent<Frantic.Networking.ReadyManager>();
 
             var entrance = new GameObject("DungeonEntrance");
             entrance.tag = "DungeonEntrance";
@@ -88,6 +55,10 @@ namespace Frantic.Networking.Editor
             mainCamera.orthographic = true;
             mainCamera.orthographicSize = 8f;
             camera.transform.position = new Vector3(0f, 0f, -10f);
+
+            var eventSystem = new GameObject("EventSystem");
+            eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            eventSystem.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
 
             EditorSceneManager.SaveScene(scene, "Assets/Scenes/Hub.unity");
             AssetDatabase.SaveAssets();
@@ -110,12 +81,6 @@ namespace Frantic.Networking.Editor
             {
                 EditorSceneManager.OpenScene("Assets/Scenes/Hub.unity");
                 hubScene = EditorSceneManager.GetActiveScene();
-            }
-
-            if (!hubScene.GetRootGameObjects().Any(g => g.name == "NetworkManager"))
-            {
-                Debug.LogWarning("[Setup] NetworkManager not found in Hub scene. Run 'Frantic → Setup Hub Scene' first.");
-                return;
             }
 
             if (hubScene.GetRootGameObjects().Any(g => g.name == "ConnectionMenu"))
@@ -153,33 +118,27 @@ namespace Frantic.Networking.Editor
             panelRect.anchorMin = new Vector2(0.5f, 0.5f);
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.pivot = new Vector2(0.5f, 0.5f);
-            panelRect.sizeDelta = new Vector2(400f, 300f);
+            panelRect.sizeDelta = new Vector2(400f, 200f);
             panelRect.anchoredPosition = Vector2.zero;
 
             var panelImage = menuPanel.AddComponent<Image>();
             panelImage.color = new Color(0f, 0f, 0f, 0.8f);
 
-            var hostButton = CreateButton("Host Button", "HOST", new Vector2(0f, 50f), new Vector2(200f, 50f), () => { });
-            hostButton.transform.SetParent(menuPanel.transform);
+            var startButton = CreateButton("Start Button", "START", new Vector2(0f, 0f), new Vector2(200f, 50f), () => { });
+            startButton.transform.SetParent(menuPanel.transform);
 
-            var clientButton = CreateButton("Client Button", "CLIENT", new Vector2(0f, -50f), new Vector2(200f, 50f), () => { });
-            clientButton.transform.SetParent(menuPanel.transform);
-
-            var ipInput = CreateInputField("IP Input", new Vector2(0f, 100f), new Vector2(200f, 40f));
-            ipInput.transform.SetParent(menuPanel.transform);
-            if (ipInput.placeholder is TMPro.TextMeshProUGUI placeholderText)
-            {
-                placeholderText.text = "IP Address";
-            }
-
-            var statusText = CreateText("Status Text", "Select mode to start", new Vector2(0f, -120f), new Vector2(300f, 30f));
+            var statusText = CreateText("Status Text", "Press START to begin", new Vector2(0f, -80f), new Vector2(300f, 30f));
             statusText.transform.SetParent(menuPanel.transform);
 
             var connectionMenuGO = new GameObject("ConnectionMenu");
             connectionMenuGO.transform.SetParent(canvasGO.transform);
 
             var connectionMenu = connectionMenuGO.AddComponent<Frantic.Networking.ConnectionMenu>();
-            connectionMenu.SetUI(menuPanel, hostButton, clientButton, ipInput, statusText);
+
+            var playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
+            connectionMenu._playerPrefab = playerPrefab;
+
+            connectionMenu.SetUI(menuPanel, startButton, statusText);
 
             EditorSceneManager.SaveScene(hubScene);
             AssetDatabase.SaveAssets();
@@ -220,8 +179,6 @@ namespace Frantic.Networking.Editor
             hudRect.sizeDelta = Vector2.zero;
 
             EditorSceneManager.MoveGameObjectToScene(hudGO, hubScene);
-
-            var hud = hudGO.AddComponent<Frantic.Networking.HUD>();
 
             var healthBarGO = new GameObject("HealthBar");
             healthBarGO.transform.SetParent(hudGO.transform);
@@ -264,22 +221,7 @@ namespace Frantic.Networking.Editor
             ammoText.alignment = TextAlignmentOptions.Center;
             ammoText.text = "Ammo: 30";
 
-            var readyTextGO = new GameObject("ReadyText");
-            readyTextGO.transform.SetParent(hudGO.transform);
-
-            var readyTextRect = readyTextGO.AddComponent<RectTransform>();
-            readyTextRect.anchoredPosition = new Vector2(0f, 80f);
-            readyTextRect.sizeDelta = new Vector2(200f, 30f);
-            readyTextRect.anchorMin = new Vector2(0.5f, 0.5f);
-            readyTextRect.anchorMax = new Vector2(0.5f, 0.5f);
-            readyTextRect.pivot = new Vector2(0.5f, 0.5f);
-
-            var readyText = readyTextGO.AddComponent<TextMeshProUGUI>();
-            readyText.fontSize = 16;
-            readyText.alignment = TextAlignmentOptions.Center;
-            readyText.text = "Ready: 0/1";
-
-            hud.SetUI(healthBarImage, ammoText, readyText);
+            hudGO.AddComponent<Frantic.Networking.HUD>();
 
             EditorSceneManager.SaveScene(hubScene);
             AssetDatabase.SaveAssets();
@@ -321,27 +263,6 @@ namespace Frantic.Networking.Editor
             return button;
         }
 
-        static TMP_InputField CreateInputField(string name, Vector2 anchoredPosition, Vector2 size)
-        {
-            var inputGO = new GameObject(name);
-
-            var rectTransform = inputGO.AddComponent<RectTransform>();
-            rectTransform.anchoredPosition = anchoredPosition;
-            rectTransform.sizeDelta = size;
-            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            rectTransform.pivot = new Vector2(0.5f, 0.5f);
-
-            var inputImage = inputGO.AddComponent<Image>();
-            inputImage.color = new Color(0.2f, 0.2f, 0.2f);
-
-            var input = inputGO.AddComponent<TMP_InputField>();
-            input.placeholder = null;
-            input.text = "";
-
-            return input;
-        }
-
         static TextMeshProUGUI CreateText(string name, string text, Vector2 anchoredPosition, Vector2 size)
         {
             var textGO = new GameObject(name);
@@ -368,15 +289,15 @@ namespace Frantic.Networking.Editor
             Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
 
             var dungeonRoot = new GameObject("DungeonNetwork");
-            dungeonRoot.AddComponent<NetworkObject>();
             var dungeonNetwork = dungeonRoot.AddComponent<Frantic.Networking.DungeonNetwork>();
 
             var roomPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Room.prefab");
             var enemyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy.prefab");
-            var exitPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonExit.prefab");
+            var playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
 
             if (roomPrefab != null) dungeonNetwork._roomPrefab = roomPrefab;
             if (enemyPrefab != null) dungeonNetwork._enemyPrefab = enemyPrefab;
+            if (playerPrefab != null) dungeonNetwork._playerPrefab = playerPrefab;
 
             PrefabUtility.SaveAsPrefabAsset(dungeonRoot, prefabPath);
             GameObject.DestroyImmediate(dungeonRoot);
@@ -390,90 +311,45 @@ namespace Frantic.Networking.Editor
         [MenuItem("Frantic/Setup Dungeon Scene")]
         public static void CreateDungeonScene()
         {
-            var dungeonScene = EditorSceneManager.GetSceneByPath("Assets/Scenes/Dungeon.unity");
-            if (!dungeonScene.IsValid())
+            var dungeonScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            EditorSceneManager.SetActiveScene(dungeonScene);
+
+            var dungeonPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonNetwork.prefab");
+            if (dungeonPrefab != null)
             {
-                dungeonScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-                EditorSceneManager.SetActiveScene(dungeonScene);
+                var dungeonInstance = GameObject.Instantiate(dungeonPrefab);
+                dungeonInstance.name = "DungeonNetwork";
+                EditorSceneManager.MoveGameObjectToScene(dungeonInstance, dungeonScene);
+                Debug.Log("[Setup] Added DungeonNetwork to scene");
             }
             else
             {
-                EditorSceneManager.OpenScene("Assets/Scenes/Dungeon.unity");
-                dungeonScene = EditorSceneManager.GetActiveScene();
+                Debug.LogWarning("[Setup] DungeonNetwork prefab not found");
             }
 
-            var hasDungeonNetwork = false;
-            var hasDungeonExit = false;
-
-            foreach (var root in dungeonScene.GetRootGameObjects())
+            var exitPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonExit.prefab");
+            if (exitPrefab != null)
             {
-                if (root.name == "DungeonNetwork") hasDungeonNetwork = true;
-                if (root.name == "DungeonExit") hasDungeonExit = true;
-            }
-
-            if (!hasDungeonNetwork)
-            {
-                var dungeonPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonNetwork.prefab");
-                if (dungeonPrefab != null)
-                {
-                    var dungeonInstance = GameObject.Instantiate(dungeonPrefab);
-                    dungeonInstance.name = "DungeonNetwork";
-                    EditorSceneManager.MoveGameObjectToScene(dungeonInstance, dungeonScene);
-                    Debug.Log("[Setup] Added DungeonNetwork to scene");
-                }
-                else
-                {
-                    Debug.LogWarning("[Setup] DungeonNetwork prefab not found");
-                }
+                var exitInstance = GameObject.Instantiate(exitPrefab);
+                exitInstance.name = "DungeonExit";
+                exitInstance.transform.position = new Vector3(0f, -6f, 0f);
+                EditorSceneManager.MoveGameObjectToScene(exitInstance, dungeonScene);
+                Debug.Log("[Setup] Added DungeonExit to scene");
             }
             else
             {
-                Debug.Log("[Setup] DungeonNetwork already in scene");
+                Debug.LogWarning("[Setup] DungeonExit prefab not found");
             }
 
-            if (!hasDungeonExit)
-            {
-                var exitPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonExit.prefab");
-                if (exitPrefab != null)
-                {
-                    var exitInstance = GameObject.Instantiate(exitPrefab);
-                    exitInstance.name = "DungeonExit";
-                    exitInstance.transform.position = new Vector3(0f, -6f, 0f);
-                    EditorSceneManager.MoveGameObjectToScene(exitInstance, dungeonScene);
-                    Debug.Log("[Setup] Added DungeonExit to scene");
-                }
-                else
-                {
-                    Debug.LogWarning("[Setup] DungeonExit prefab not found");
-                }
-            }
-            else
-            {
-                Debug.Log("[Setup] DungeonExit already in scene");
-            }
-
-            var hasCamera = false;
-            foreach (var root in dungeonScene.GetRootGameObjects())
-            {
-                if (root.CompareTag("MainCamera")) hasCamera = true;
-            }
-
-            if (!hasCamera)
-            {
-                var camera = new GameObject("MainCamera");
-                camera.tag = "MainCamera";
-                camera.AddComponent<Frantic.Networking.CameraController>();
-                var mainCamera = camera.AddComponent<Camera>();
-                mainCamera.orthographic = true;
-                mainCamera.orthographicSize = 8f;
-                camera.transform.position = new Vector3(0f, 0f, -10f);
-                EditorSceneManager.MoveGameObjectToScene(camera, dungeonScene);
-                Debug.Log("[Setup] Added MainCamera to scene");
-            }
-            else
-            {
-                Debug.Log("[Setup] MainCamera already in scene");
-            }
+            var camera = new GameObject("MainCamera");
+            camera.tag = "MainCamera";
+            camera.AddComponent<Frantic.Networking.CameraController>();
+            var mainCamera = camera.AddComponent<Camera>();
+            mainCamera.orthographic = true;
+            mainCamera.orthographicSize = 8f;
+            camera.transform.position = new Vector3(0f, 0f, -10f);
+            EditorSceneManager.MoveGameObjectToScene(camera, dungeonScene);
+            Debug.Log("[Setup] Added MainCamera to scene");
 
             EditorSceneManager.SaveScene(dungeonScene, "Assets/Scenes/Dungeon.unity");
             AssetDatabase.SaveAssets();
@@ -490,19 +366,13 @@ namespace Frantic.Networking.Editor
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (existing != null)
             {
-                Debug.Log("[Setup] Player prefab already exists, skipping creation");
-                return;
+                Debug.Log("[Setup] Player prefab already exists, recreating for single-player");
+                AssetDatabase.DeleteAsset(prefabPath);
             }
 
             Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
 
             var playerRoot = new GameObject("Player");
-
-            playerRoot.AddComponent<NetworkObject>();
-            var networkTransform = playerRoot.AddComponent<NetworkTransform>();
-            networkTransform.SyncPositionX = true;
-            networkTransform.SyncPositionY = true;
-            networkTransform.UseQuaternionSynchronization = false;
 
             var rb = playerRoot.AddComponent<Rigidbody2D>();
             rb.gravityScale = 0f;
@@ -543,14 +413,8 @@ namespace Frantic.Networking.Editor
 
             var enemyRoot = new GameObject("Enemy");
 
-            if (enemyRoot.GetComponent<MeshRenderer>() != null) GameObject.DestroyImmediate(enemyRoot.GetComponent<MeshRenderer>());
-            if (enemyRoot.GetComponent<MeshFilter>() != null) GameObject.DestroyImmediate(enemyRoot.GetComponent<MeshFilter>());
+            if (enemyRoot.GetComponent<SpriteRenderer>() != null) GameObject.DestroyImmediate(enemyRoot.GetComponent<SpriteRenderer>());
 
-            enemyRoot.AddComponent<NetworkObject>();
-            var enemyNetworkTransform = enemyRoot.AddComponent<NetworkTransform>();
-            enemyNetworkTransform.SyncPositionX = true;
-            enemyNetworkTransform.SyncPositionY = true;
-            enemyNetworkTransform.UseQuaternionSynchronization = false;
             enemyRoot.AddComponent<Rigidbody2D>().gravityScale = 0f;
             enemyRoot.AddComponent<CircleCollider2D>().radius = 0.5f;
 
@@ -575,15 +439,9 @@ namespace Frantic.Networking.Editor
 
             var roomRoot = new GameObject("Room");
 
-            if (roomRoot.GetComponent<MeshRenderer>() != null) GameObject.DestroyImmediate(roomRoot.GetComponent<MeshRenderer>());
-            if (roomRoot.GetComponent<MeshFilter>() != null) GameObject.DestroyImmediate(roomRoot.GetComponent<MeshFilter>());
+            if (roomRoot.GetComponent<SpriteRenderer>() != null) GameObject.DestroyImmediate(roomRoot.GetComponent<SpriteRenderer>());
 
-            roomRoot.AddComponent<NetworkObject>();
-            var roomNetworkTransform = roomRoot.AddComponent<NetworkTransform>();
-            roomNetworkTransform.SyncPositionX = true;
-            roomNetworkTransform.SyncPositionY = true;
-            roomNetworkTransform.UseQuaternionSynchronization = false;
-            roomRoot.AddComponent<BoxCollider2D>().size = new Vector2(10f, 10f);
+            roomRoot.AddComponent<BoxCollider2D>().size = new Vector2(20f, 20f);
 
             roomRoot.AddComponent<SpriteRenderer>();
 
@@ -612,11 +470,6 @@ namespace Frantic.Networking.Editor
 
             var projRoot = new GameObject("Projectile");
 
-            projRoot.AddComponent<NetworkObject>();
-            var networkTransform = projRoot.AddComponent<NetworkTransform>();
-            networkTransform.SyncPositionX = true;
-            networkTransform.SyncPositionY = true;
-            networkTransform.UseQuaternionSynchronization = false;
             projRoot.AddComponent<Rigidbody2D>().gravityScale = 0f;
             projRoot.AddComponent<CircleCollider2D>().radius = 0.15f;
 
@@ -637,10 +490,8 @@ namespace Frantic.Networking.Editor
 
             var lootRoot = new GameObject("Loot");
 
-            if (lootRoot.GetComponent<MeshRenderer>() != null) GameObject.DestroyImmediate(lootRoot.GetComponent<MeshRenderer>());
-            if (lootRoot.GetComponent<MeshFilter>() != null) GameObject.DestroyImmediate(lootRoot.GetComponent<MeshFilter>());
+            if (lootRoot.GetComponent<SpriteRenderer>() != null) GameObject.DestroyImmediate(lootRoot.GetComponent<SpriteRenderer>());
 
-            lootRoot.AddComponent<NetworkObject>();
             lootRoot.AddComponent<Rigidbody2D>().gravityScale = 0f;
             lootRoot.AddComponent<CircleCollider2D>().radius = 0.3f;
 
@@ -665,10 +516,8 @@ namespace Frantic.Networking.Editor
             var exitRoot = new GameObject("DungeonExit");
             exitRoot.tag = "DungeonExit";
 
-            if (exitRoot.GetComponent<MeshRenderer>() != null) GameObject.DestroyImmediate(exitRoot.GetComponent<MeshRenderer>());
-            if (exitRoot.GetComponent<MeshFilter>() != null) GameObject.DestroyImmediate(exitRoot.GetComponent<MeshFilter>());
+            if (exitRoot.GetComponent<SpriteRenderer>() != null) GameObject.DestroyImmediate(exitRoot.GetComponent<SpriteRenderer>());
 
-            exitRoot.AddComponent<NetworkObject>();
             var exitCollider = exitRoot.AddComponent<BoxCollider2D>();
             exitCollider.isTrigger = true;
             exitCollider.size = new Vector2(3f, 2f);
@@ -685,79 +534,26 @@ namespace Frantic.Networking.Editor
             Debug.Log("[Setup] DungeonExit prefab created at " + prefabPath);
         }
 
-        [MenuItem("Frantic/Register Prefabs")]
-        public static void RegisterAllPrefabs()
-        {
-            var networkManager = Object.FindObjectOfType<Frantic.Networking.FranticNetworkManager>();
-
-            if (networkManager == null)
-            {
-                var go = new GameObject("NetworkManager");
-                networkManager = go.AddComponent<Frantic.Networking.FranticNetworkManager>();
-            }
-
-            var playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
-            if (playerPrefab != null)
-            {
-                networkManager.NetworkConfig.PlayerPrefab = playerPrefab;
-                EditorUtility.SetDirty(networkManager);
-                Debug.Log("[Setup] Player prefab registered");
-            }
-
-            var enemyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy.prefab");
-            var roomPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Room.prefab");
-            var projectilePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Projectile.prefab");
-            var lootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Loot.prefab");
-            var dungeonNetworkPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonNetwork.prefab");
-            var dungeonExitPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonExit.prefab");
-
-            var defaultPrefabs = AssetDatabase.LoadAssetAtPath<NetworkPrefabsList>("Assets/DefaultNetworkPrefabs.asset");
-            if (defaultPrefabs != null)
-            {
-                var serializedObject = new SerializedObject(defaultPrefabs);
-                var listProp = serializedObject.FindProperty("List");
-                listProp.ClearArray();
-
-                var prefabsToAdd = new List<GameObject>();
-                if (playerPrefab != null) prefabsToAdd.Add(playerPrefab);
-                if (enemyPrefab != null) prefabsToAdd.Add(enemyPrefab);
-                if (roomPrefab != null) prefabsToAdd.Add(roomPrefab);
-                if (projectilePrefab != null) prefabsToAdd.Add(projectilePrefab);
-                if (lootPrefab != null) prefabsToAdd.Add(lootPrefab);
-                if (dungeonNetworkPrefab != null) prefabsToAdd.Add(dungeonNetworkPrefab);
-                if (dungeonExitPrefab != null) prefabsToAdd.Add(dungeonExitPrefab);
-
-                foreach (var prefab in prefabsToAdd)
-                {
-                    listProp.InsertArrayElementAtIndex(listProp.arraySize);
-                    var elem = listProp.GetArrayElementAtIndex(listProp.arraySize - 1);
-                    elem.FindPropertyRelative("Prefab").objectReferenceValue = prefab;
-                    elem.FindPropertyRelative("SourcePrefabToOverride").objectReferenceValue = prefab;
-                    elem.FindPropertyRelative("Override").intValue = (int)NetworkPrefabOverride.None;
-                }
-
-                serializedObject.ApplyModifiedProperties();
-                AssetDatabase.SaveAssets();
-
-                Debug.Log("[Setup] Prefabs registered in DefaultNetworkPrefabs.asset");
-            }
-        }
-
         static void AddScenesToBuildSettings()
         {
             var scenesToAdd = new[] { "Assets/Scenes/Hub.unity", "Assets/Scenes/Dungeon.unity" };
 
             var toAdd = new List<EditorBuildSettingsScene>();
 
+            foreach (var existing in EditorBuildSettings.scenes)
+            {
+                toAdd.Add(existing);
+            }
+
             foreach (var scenePath in scenesToAdd)
             {
                 var alreadyExists = false;
-                foreach (var existing in EditorBuildSettings.scenes)
+                foreach (var existing in toAdd)
                 {
                     if (existing.path == scenePath)
                     {
                         alreadyExists = true;
-                        toAdd.Add(new EditorBuildSettingsScene(scenePath, true));
+                        toAdd[toAdd.IndexOf(toAdd.First(e => e.path == scenePath))] = new EditorBuildSettingsScene(scenePath, true);
                         break;
                     }
                 }

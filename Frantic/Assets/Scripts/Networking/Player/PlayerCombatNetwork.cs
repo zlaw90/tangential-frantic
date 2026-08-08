@@ -1,12 +1,14 @@
 using System;
 using UnityEngine;
-using Unity.Netcode;
 
 namespace Frantic.Networking
 {
     public class PlayerCombatNetwork : FranticNetworkObject
     {
         public event Action OnWeaponFired;
+
+        [SerializeField]
+        private Transform _weaponTip;
 
         [SerializeField]
         private float _fireCooldown = 0.25f;
@@ -22,87 +24,61 @@ namespace Frantic.Networking
 
         private float _lastFireTime;
         private int _currentAmmo;
-        private NetworkVariable<int> _networkAmmo = new NetworkVariable<int>();
 
-        public int CurrentAmmo => _networkAmmo.Value;
-
-        public override void OnNetworkSpawn()
+        private void Awake()
         {
-            base.OnNetworkSpawn();
             _currentAmmo = _maxAmmo;
-            _networkAmmo.Value = _maxAmmo;
+            if (_weaponTip == null)
+            {
+                _weaponTip = transform;
+                _weaponTip.position += Vector3.up * 0.5f;
+            }
         }
 
-        [ServerRpc]
-        public void FireWeaponServerRpc(Vector2 direction)
-        {
-            if (!IsServer) return;
+        public int CurrentAmmo => _currentAmmo;
 
+        public void FireWeapon(Vector2 direction)
+        {
             if (Time.time - _lastFireTime < _fireCooldown) return;
 
             if (_currentAmmo <= 0) return;
 
             _currentAmmo--;
-            _networkAmmo.Value = _currentAmmo;
             _lastFireTime = Time.time;
 
-            var player = GetComponent<PlayerNetwork>();
-            if (player != null && player.weaponTip != null)
+            if (_weaponTip != null)
             {
                 var worldDirection = new Vector3(direction.x, direction.y, 0f);
-                SpawnProjectileServerRpc(player.weaponTip.position, worldDirection);
+                SpawnProjectile(_weaponTip.position, worldDirection);
             }
 
-            OnFireClientRpc();
             OnWeaponFired?.Invoke();
         }
 
-        [ServerRpc]
-        public void ReloadServerRpc()
+        public void Reload()
         {
-            if (!IsServer) return;
             if (_currentAmmo == _maxAmmo) return;
 
             _currentAmmo = _maxAmmo;
-            _networkAmmo.Value = _currentAmmo;
-            OnReloadedClientRpc();
         }
 
-        [ServerRpc]
-        public void AddAmmoServerRpc(int amount)
+        public void AddAmmo(int amount)
         {
-            if (!IsServer) return;
-
             _currentAmmo = Mathf.Min(_maxAmmo, _currentAmmo + amount);
-            _networkAmmo.Value = _currentAmmo;
-            OnReloadedClientRpc();
         }
 
-        [ServerRpc]
-        private void SpawnProjectileServerRpc(Vector3 position, Vector3 direction)
+        private void SpawnProjectile(Vector3 position, Vector3 direction)
         {
             if (_projectilePrefab != null)
             {
-                var projectile = Instantiate(_projectilePrefab, position, Quaternion.identity);
-                var networkObject = projectile.GetComponent<NetworkObject>();
-                if (networkObject == null)
-                {
-                    networkObject = projectile.AddComponent<NetworkObject>();
-                }
-                networkObject.Spawn(true);
+                var spawnPos = position + direction.normalized * 0.5f;
+                var projectile = Instantiate(_projectilePrefab, spawnPos, Quaternion.identity);
                 var projectileNetwork = projectile.GetComponent<ProjectileNetwork>();
-                if (projectileNetwork == null)
+                if (projectileNetwork != null)
                 {
-                    projectileNetwork = projectile.AddComponent<ProjectileNetwork>();
+                    projectileNetwork.Initialize(direction, gameObject);
                 }
-                projectileNetwork.Initialize(direction, gameObject);
             }
         }
-
-        [ClientRpc]
-        private void OnFireClientRpc() { }
-
-        [ClientRpc]
-        private void OnReloadedClientRpc() { }
     }
 }

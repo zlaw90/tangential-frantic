@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using Unity.Netcode;
+using UnityEngine.SceneManagement;
 
 namespace Frantic.Networking
 {
@@ -12,50 +12,48 @@ namespace Frantic.Networking
         [SerializeField]
         private int _maxHealth = 100;
 
-        private NetworkVariable<int> _networkHealth = new NetworkVariable<int>();
+        private int _currentHealth;
+        private string _currentScene;
 
-        public int CurrentHealth => _networkHealth.Value;
+        public int CurrentHealth => _currentHealth;
         public int MaxHealth => _maxHealth;
 
-        public override void OnNetworkSpawn()
+        private void Awake()
         {
-            base.OnNetworkSpawn();
-            _networkHealth.Value = _maxHealth;
+            _currentHealth = _maxHealth;
+            _currentScene = SceneManager.GetActiveScene().name;
         }
 
-        [ServerRpc]
-        public void TakeDamageServerRpc(int damage)
+        public void TakeDamage(int damage)
         {
-            if (!IsServer) return;
             if (damage <= 0) return;
 
-            var currentHealth = Mathf.Max(0, _networkHealth.Value - damage);
-            _networkHealth.Value = currentHealth;
-
-            if (currentHealth <= 0)
+            if (_currentScene == "Hub")
             {
+                Debug.LogWarning("[PlayerHealth] Taking damage in Hub - ignoring");
+                return;
+            }
+
+            var oldHealth = _currentHealth;
+            var newHealth = Mathf.Max(0, _currentHealth - damage);
+            _currentHealth = newHealth;
+
+            Debug.Log($"[PlayerHealth] Took {damage} damage: {oldHealth} -> {_currentHealth}");
+
+            OnHealthChanged?.Invoke(_currentHealth);
+
+            if (_currentHealth <= 0)
+            {
+                Debug.LogError("[PlayerHealth] Player died!");
                 GameManager.Instance?.Defeat();
-            }
-            else
-            {
-                OnHealthChangedClientRpc(currentHealth);
+                OnPlayerDied?.Invoke();
             }
         }
 
-        [ClientRpc]
-        private void OnHealthChangedClientRpc(int health)
+        public void Heal(int amount)
         {
-            OnHealthChanged?.Invoke(health);
-        }
-
-        [ServerRpc]
-        public void HealServerRpc(int amount)
-        {
-            if (!IsServer) return;
-
-            var currentHealth = Mathf.Min(_maxHealth, _networkHealth.Value + amount);
-            _networkHealth.Value = currentHealth;
-            OnHealthChangedClientRpc(currentHealth);
+            _currentHealth = Mathf.Min(_maxHealth, _currentHealth + amount);
+            OnHealthChanged?.Invoke(_currentHealth);
         }
     }
 }

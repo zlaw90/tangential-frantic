@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Netcode;
 using System.Linq;
 
 namespace Frantic.Networking
 {
-    public class DungeonNetwork : NetworkBehaviour
+    public class DungeonNetwork : MonoBehaviour
     {
         [SerializeField]
         public GameObject _roomPrefab;
@@ -13,7 +12,11 @@ namespace Frantic.Networking
         [SerializeField]
         public GameObject _enemyPrefab;
 
+        [SerializeField]
+        public GameObject _playerPrefab;
 
+        [SerializeField]
+        public GameObject _exitPrefab;
 
         [SerializeField]
         private int _minRooms = 5;
@@ -21,19 +24,18 @@ namespace Frantic.Networking
         [SerializeField]
         private int _maxRooms = 10;
 
+        [SerializeField]
+        private float _roomSpacing = 24f;
+
         private readonly HashSet<Vector3Int> _placedRooms = new();
 
-        public override void OnNetworkSpawn()
+        private void Awake()
         {
-            base.OnNetworkSpawn();
-            if (IsServer)
-            {
-                GenerateDungeonServerRpc();
-            }
+            SpawnPlayer();
+            GenerateDungeon();
         }
 
-        [ServerRpc]
-        private void GenerateDungeonServerRpc()
+        public void GenerateDungeon()
         {
             Debug.Log("[Dungeon] Generating dungeon");
 
@@ -46,14 +48,16 @@ namespace Frantic.Networking
             for (int i = 1; i < roomCount; i++)
             {
                 var direction = GetRandomDirection();
-                var nextRoom = _placedRooms.Count > 0 ? _placedRooms.ToArray()[_placedRooms.Count - 1] + direction : Vector3Int.right;
+                var lastRoom = _placedRooms.ToList()[_placedRooms.Count - 1];
+                var nextRoom = lastRoom + direction;
 
                 if (!_placedRooms.Contains(nextRoom))
                 {
                     PlaceRoom(nextRoom);
-                    _placedRooms.Add(nextRoom);
-
-                    SpawnEnemiesForRoom(nextRoom);
+                    if (nextRoom != Vector3Int.zero)
+                    {
+                        SpawnEnemiesForRoom(nextRoom);
+                    }
                 }
                 else
                 {
@@ -61,7 +65,27 @@ namespace Frantic.Networking
                 }
             }
 
+            SpawnExit();
             Debug.Log($"[Dungeon] Generated {roomCount} rooms");
+        }
+
+        private void SpawnPlayer()
+        {
+            if (_playerPrefab != null)
+            {
+                Instantiate(_playerPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity);
+                Debug.Log("[Dungeon] Player spawned");
+            }
+            else
+            {
+                Debug.LogWarning("[Dungeon] No player prefab assigned");
+            }
+
+            var hud = FindObjectOfType<HUD>();
+            if (hud == null)
+            {
+                Debug.LogWarning("[Dungeon] No HUD found in scene!");
+            }
         }
 
         private void PlaceRoom(Vector3Int position)
@@ -72,35 +96,34 @@ namespace Frantic.Networking
                 return;
             }
 
-            var room = GameObject.Instantiate(_roomPrefab, new Vector3(position.x, position.y, 0f), Quaternion.identity);
-            var networkObject = room.GetComponent<NetworkObject>();
-            if (networkObject == null)
-            {
-                networkObject = room.AddComponent<NetworkObject>();
-            }
-            networkObject.Spawn(true);
+            var worldPos = new Vector3(position.x * _roomSpacing, position.y * _roomSpacing, 0f);
+            var roomInstance = Instantiate(_roomPrefab, worldPos, Quaternion.identity);
+            _placedRooms.Add(position);
 
-            Debug.Log($"[Spawn] Room at {position}");
+            Debug.Log($"[Spawn] Room at {worldPos}");
         }
 
         private void SpawnEnemiesForRoom(Vector3Int roomPosition)
         {
             var enemyCount = Random.Range(2, 5);
-            var playerCount = FranticNetworkManager.Instance.ConnectedClientsList.Count;
-            var difficultyMultiplier = playerCount switch
-            {
-                2 => 1.5f,
-                3 => 2f,
-                4 => 2.5f,
-                _ => 1f
-            };
+            var difficultyMultiplier = 1f;
 
             for (int i = 0; i < Mathf.CeilToInt(enemyCount * difficultyMultiplier); i++)
             {
-                var offset = new Vector3(Random.Range(-4f, 4f), Random.Range(-4f, 4f), 0f);
-                var spawnPosition = new Vector3(roomPosition.x, roomPosition.y, 0f) + offset;
+                float angle = Random.value * Mathf.PI * 2f;
+                float radius = Random.Range(6f, 10f);
+                var offset = new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0f);
+                var spawnPosition = new Vector3(roomPosition.x * _roomSpacing, roomPosition.y * _roomSpacing, 0f) + offset;
 
-                SpawnEnemy(spawnPosition);
+                float distToPlayer = Vector3.Distance(spawnPosition, Vector3.zero);
+                if (distToPlayer >= 10f)
+                {
+                    SpawnEnemy(spawnPosition);
+                }
+                else
+                {
+                    i--;
+                }
             }
         }
 
@@ -112,15 +135,74 @@ namespace Frantic.Networking
                 return;
             }
 
-            var enemy = GameObject.Instantiate(_enemyPrefab, position, Quaternion.identity);
-            var networkObject = enemy.GetComponent<NetworkObject>();
-            if (networkObject == null)
-            {
-                networkObject = enemy.AddComponent<NetworkObject>();
-            }
-            networkObject.Spawn(true);
-
+            var enemyInstance = Instantiate(_enemyPrefab, position, Quaternion.identity);
             Debug.Log($"[Spawn] Enemy at {position}");
+        }
+
+        private void SpawnExit()
+        {
+            var exitPosition = FindSafeExitPosition();
+
+            if (_exitPrefab != null)
+            {
+                var exitInstance = Instantiate(_exitPrefab, exitPosition, Quaternion.identity);
+                exitInstance.name = "DungeonExit";
+                Debug.Log($"[Spawn] Exit at {exitPosition}");
+                return;
+            }
+
+            Debug.LogWarning("[Dungeon] No exit prefab assigned, creating fallback exit");
+            var fallbackExit = new GameObject("DungeonExit");
+            fallbackExit.transform.position = exitPosition;
+            var exitCollider = fallbackExit.AddComponent<BoxCollider2D>();
+            exitCollider.isTrigger = true;
+            exitCollider.size = new Vector2(3f, 2f);
+            fallbackExit.AddComponent<DungeonExitNetwork>();
+            var spriteRenderer = fallbackExit.AddComponent<SpriteRenderer>();
+            var whiteTexture = new Texture2D(1, 1);
+            whiteTexture.SetPixel(0, 0, Color.yellow);
+            whiteTexture.Apply();
+            spriteRenderer.sprite = Sprite.Create(whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+            Debug.Log($"[Spawn] Fallback exit at {exitPosition}");
+        }
+
+        private Vector3 FindSafeExitPosition()
+        {
+            if (_placedRooms.Count == 0)
+            {
+                return new Vector3(0f, -20f, 0f);
+            }
+
+            var roomHalfSize = 10f;
+
+            for (int attempt = 0; attempt < 200; attempt++)
+            {
+                var angle = Random.value * Mathf.PI * 2f;
+                var radius = Random.Range(30f, 60f);
+                var candidate = new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0f);
+
+                bool insideAnyRoom = false;
+                foreach (var room in _placedRooms)
+                {
+                    var roomCenter = new Vector3(room.x * _roomSpacing, room.y * _roomSpacing, 0f);
+                    var dx = Mathf.Abs(candidate.x - roomCenter.x);
+                    var dy = Mathf.Abs(candidate.y - roomCenter.y);
+                    if (dx < roomHalfSize && dy < roomHalfSize)
+                    {
+                        insideAnyRoom = true;
+                        break;
+                    }
+                }
+
+                if (!insideAnyRoom)
+                {
+                    Debug.Log($"[Exit] Safe position found: {candidate}");
+                    return candidate;
+                }
+            }
+
+            Debug.LogWarning("[Exit] Could not find safe position, using fallback");
+            return new Vector3(0f, -40f, 0f);
         }
 
         private Vector3Int GetRandomDirection()
@@ -134,7 +216,5 @@ namespace Frantic.Networking
                 _ => Vector3Int.down
             };
         }
-
-
     }
 }

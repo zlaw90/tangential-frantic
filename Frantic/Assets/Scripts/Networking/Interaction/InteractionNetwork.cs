@@ -1,5 +1,6 @@
+using System.Linq;
 using UnityEngine;
-using Unity.Netcode;
+using UnityEngine.InputSystem;
 
 namespace Frantic.Networking
 {
@@ -13,10 +14,9 @@ namespace Frantic.Networking
 
         private void Update()
         {
-            if (!IsOwner) return;
-
             if (InputManager.Interact)
             {
+                Debug.Log("[Interaction] Interact pressed, checking nearby objects...");
                 CheckInteraction();
             }
         }
@@ -24,13 +24,24 @@ namespace Frantic.Networking
         private void CheckInteraction()
         {
             var nearbyObjects = Physics2D.OverlapCircleAll(transform.position, _interactionRange);
+            Debug.Log($"[Interaction] Found {nearbyObjects.Length} colliders in range");
 
             foreach (var collider in nearbyObjects)
             {
+                Debug.Log($"[Interaction] Collider: {collider.gameObject.name}, Tag: {collider.gameObject.tag}");
                 if (collider.CompareTag(_interactionTag))
                 {
+                    Debug.Log("[Interaction] DungeonEntrance found, calling Interact");
                     var playerNetwork = GetComponent<PlayerNetwork>();
-                    playerNetwork?.InteractServerRpc();
+                    if (playerNetwork != null)
+                    {
+                        Debug.Log("[Interaction] PlayerNetwork found, calling Interact()");
+                        playerNetwork.Interact();
+                    }
+                    else
+                    {
+                        Debug.LogError("[Interaction] PlayerNetwork NOT found on this GameObject! Components: " + string.Join(", ", GetComponents<Component>().Select(c => c.GetType().Name)));
+                    }
                     return;
                 }
             }

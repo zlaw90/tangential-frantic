@@ -81,7 +81,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5265986690135230233}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
@@ -107,7 +107,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5265986690135230233}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
   m_Name: 
@@ -310,7 +310,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32c00306b55e09f41b5d759a3502a708, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Frantic.Networking.PlayerNetwork
-  ShowTopMostFoldoutHeaderGroup: 1
   weaponTip: {fileID: 1972886583466538249}
 --- !u!114 &977125175222564629
 MonoBehaviour:
@@ -324,7 +323,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd2fadee119cdb4aabf868033ad2130, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Frantic.Networking.PlayerHealthNetwork
-  ShowTopMostFoldoutHeaderGroup: 1
   _maxHealth: 100
 --- !u!114 &6916125312016109166
 MonoBehaviour:
@@ -338,7 +336,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cac249f92dab33a48993e7ed127b1727, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Frantic.Networking.PlayerCombatNetwork
-  ShowTopMostFoldoutHeaderGroup: 1
   _fireCooldown: 0.25
   _maxAmmo: 30
   _fireRange: 20
@@ -355,7 +352,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9cc14d696a09794199b2b0b21526863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Frantic.Networking.PlayerMovement
-  ShowTopMostFoldoutHeaderGroup: 1
   _moveSpeed: 5
 --- !u!114 &8140192076139954399
 MonoBehaviour:
@@ -369,6 +365,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef3493f0d67e02b4cb3ba9f779e5b6b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Frantic.Networking.InteractionNetwork
-  ShowTopMostFoldoutHeaderGroup: 1
   _interactionRange: 2
   _interactionTag: DungeonEntrance

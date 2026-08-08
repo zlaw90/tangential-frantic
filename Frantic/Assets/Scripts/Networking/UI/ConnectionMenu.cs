@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 namespace Frantic.Networking
 {
@@ -10,30 +11,25 @@ namespace Frantic.Networking
         private GameObject _menuPanel;
 
         [SerializeField]
-        private Button _hostButton;
-
-        [SerializeField]
-        private Button _clientButton;
-
-        [SerializeField]
-        private TMP_InputField _ipInputField;
+        private Button _startButton;
 
         [SerializeField]
         private TMP_Text _statusText;
 
-        public void SetUI(GameObject menuPanel, Button hostButton, Button clientButton, TMP_InputField ipInput, TMP_Text statusText)
+        [SerializeField]
+        public GameObject _playerPrefab;
+
+        public void SetUI(GameObject menuPanel, Button startButton, TMP_Text statusText)
         {
             _menuPanel = menuPanel;
-            _hostButton = hostButton;
-            _clientButton = clientButton;
-            _ipInputField = ipInput;
+            _startButton = startButton;
             _statusText = statusText;
             SetupListeners();
         }
 
         private void Awake()
         {
-            if (_hostButton != null && _clientButton != null)
+            if (_startButton != null)
             {
                 SetupListeners();
             }
@@ -41,57 +37,39 @@ namespace Frantic.Networking
 
         private void Start()
         {
-            if (_statusText != null) _statusText.text = "Select mode to start";
+            if (_statusText != null) _statusText.text = "Press START to begin";
         }
 
         public void SetupListeners()
         {
-            if (_hostButton != null)
+            if (_startButton != null)
             {
-                _hostButton.onClick.RemoveAllListeners();
-                _hostButton.onClick.AddListener(StartHost);
-            }
-            if (_clientButton != null)
-            {
-                _clientButton.onClick.RemoveAllListeners();
-                _clientButton.onClick.AddListener(StartClient);
+                _startButton.onClick.RemoveAllListeners();
+                _startButton.onClick.AddListener(StartGame);
             }
         }
 
-        private void StartHost()
+        private void StartGame()
         {
-            Debug.Log("[Connection] StartHost called");
-            if (FranticNetworkManager.Instance == null)
+            Debug.Log("[Connection] Spawning player in Hub");
+            if (_statusText != null) _statusText.text = "Use E on DungeonEntrance to start";
+            if (_menuPanel != null) _menuPanel.SetActive(false);
+
+            var existingPlayer = FindObjectOfType<PlayerNetwork>();
+            if (existingPlayer != null)
             {
-                Debug.LogError("[Connection] FranticNetworkManager.Instance is NULL");
+                Debug.Log("[Connection] Player already exists");
                 return;
             }
-            Debug.Log("[Connection] Starting host");
-            _statusText.text = "Starting host...";
-            _menuPanel.SetActive(false);
-            FranticNetworkManager.Instance.StartHost();
-        }
 
-        private void StartClient()
-        {
-            Debug.Log("[Connection] StartClient called");
-            if (FranticNetworkManager.Instance == null)
+            if (_playerPrefab != null)
             {
-                Debug.LogError("[Connection] FranticNetworkManager.Instance is NULL");
-                return;
+                Instantiate(_playerPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity);
             }
-            var ip = string.IsNullOrEmpty(_ipInputField.text) ? "127.0.0.1" : _ipInputField.text;
-            Debug.Log($"[Connection] Connecting to {ip}");
-            _statusText.text = $"Connecting to {ip}...";
-            _menuPanel.SetActive(false);
-
-            var transport = FranticNetworkManager.Instance.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
-            if (transport != null)
+            else
             {
-                transport.SetConnectionData(ip, 7778);
+                Debug.LogError("[Connection] Player prefab not assigned in inspector!");
             }
-
-            FranticNetworkManager.Instance.StartClient();
         }
     }
 }

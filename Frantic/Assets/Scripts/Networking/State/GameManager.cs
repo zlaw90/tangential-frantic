@@ -1,13 +1,12 @@
 using System;
-using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Frantic.Networking
 {
     public enum GameState
     {
         Hub,
-        ReadyCountdown,
         Dungeon,
         Exit,
         Defeat
@@ -28,55 +27,35 @@ namespace Frantic.Networking
             Instance = this;
         }
 
-        public void RequestReady(ulong callerId)
+        public void RequestReady()
         {
             if (_currentState != GameState.Hub) return;
 
-            var readyManager = FindObjectsByType<ReadyManager>(FindObjectsSortMode.None).FirstOrDefault();
-            readyManager?.SetReady(callerId, true);
-        }
-
-        public void StartCountdown()
-        {
-            if (!IsServer()) return;
-
-            _currentState = GameState.ReadyCountdown;
-            OnStateChanged?.Invoke(_currentState);
-
-            var readyManager = FindObjectsByType<ReadyManager>(FindObjectsSortMode.None).FirstOrDefault();
-            readyManager?.StartCountdown();
+            StartDungeon();
         }
 
         public void StartDungeon()
         {
-            if (!IsServer()) return;
-
             _currentState = GameState.Dungeon;
             OnStateChanged?.Invoke(_currentState);
-            FranticNetworkManager.Instance?.LoadDungeonScene();
+            Debug.Log("[GameManager] Loading Dungeon scene");
+            SceneManager.LoadScene("Dungeon", LoadSceneMode.Single);
         }
 
         public void CompleteDungeon()
         {
-            if (!IsServer()) return;
-
             _currentState = GameState.Exit;
             OnStateChanged?.Invoke(_currentState);
-            FranticNetworkManager.Instance?.LoadHubScene();
+            Debug.Log("[GameManager] Loading Hub scene");
+            SceneManager.LoadScene("Hub", LoadSceneMode.Single);
         }
 
         public void Defeat()
         {
-            if (!IsServer()) return;
-
             _currentState = GameState.Defeat;
             OnStateChanged?.Invoke(_currentState);
-            FranticNetworkManager.Instance?.LoadHubScene();
-        }
-
-        private bool IsServer()
-        {
-            return FranticNetworkManager.Instance != null && (FranticNetworkManager.Instance.IsHost || FranticNetworkManager.Instance.IsServer);
+            Debug.Log("[GameManager] Loading Hub scene (defeat)");
+            SceneManager.LoadScene("Hub", LoadSceneMode.Single);
         }
     }
 }

@@ -1,5 +1,4 @@
 using UnityEngine;
-using Unity.Netcode;
 
 namespace Frantic.Networking
 {
@@ -16,21 +15,18 @@ namespace Frantic.Networking
 
         private void Update()
         {
-            if (!IsServer) return;
-
             PlayerNetwork closestPlayer = null;
             float closestDistance = _pickupRange;
 
-            foreach (var client in NetworkManager.Singleton.ConnectedClients.Values)
-            {
-                var playerObject = client.PlayerObject;
-                if (playerObject == null) continue;
+            var players = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
 
-                var distance = Vector3.Distance(transform.position, playerObject.transform.position);
+            foreach (var player in players)
+            {
+                var distance = Vector3.Distance(transform.position, player.transform.position);
                 if (distance < closestDistance)
                 {
                     closestDistance = distance;
-                    closestPlayer = playerObject.GetComponent<PlayerNetwork>();
+                    closestPlayer = player;
                 }
             }
 
@@ -42,31 +38,21 @@ namespace Frantic.Networking
 
         private void PickupForPlayer(PlayerNetwork player)
         {
-            Debug.Log($"[Loot] Picked up by client {player.OwnerClientId}");
+            Debug.Log("[Loot] Picked up by player");
 
             var health = player.GetComponent<PlayerHealthNetwork>();
             if (health != null && _healthRestore > 0)
             {
-                health.HealServerRpc(_healthRestore);
+                health.Heal(_healthRestore);
             }
 
             var combat = player.GetComponent<PlayerCombatNetwork>();
             if (combat != null && _ammoRestore > 0)
             {
-                combat.AddAmmoServerRpc(_ammoRestore);
+                combat.AddAmmo(_ammoRestore);
             }
 
-            OnPickedUpClientRpc();
-
-            if (NetworkObject != null)
-            {
-                NetworkObject.Despawn();
-            }
-
-            GameObject.Destroy(gameObject);
+            Destroy(gameObject);
         }
-
-        [ClientRpc]
-        private void OnPickedUpClientRpc() { }
     }
 }
