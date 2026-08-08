@@ -63,16 +63,19 @@ namespace Frantic.Networking
 
         public void StartHost()
         {
+            Debug.Log("[Network] Starting host...");
             base.StartHost();
         }
 
         public void StartClient()
         {
+            Debug.Log("[Network] Starting client...");
             NetworkManager.Singleton.StartClient();
         }
 
         public void JoinGame()
         {
+            Debug.Log("[Network] Joining game...");
             NetworkManager.Singleton.StartClient();
         }
 

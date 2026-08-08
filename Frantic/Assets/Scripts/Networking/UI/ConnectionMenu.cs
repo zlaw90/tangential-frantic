@@ -60,6 +60,12 @@ namespace Frantic.Networking
 
         private void StartHost()
         {
+            Debug.Log("[Connection] StartHost called");
+            if (FranticNetworkManager.Instance == null)
+            {
+                Debug.LogError("[Connection] FranticNetworkManager.Instance is NULL");
+                return;
+            }
             Debug.Log("[Connection] Starting host");
             _statusText.text = "Starting host...";
             _menuPanel.SetActive(false);
@@ -68,6 +74,12 @@ namespace Frantic.Networking
 
         private void StartClient()
         {
+            Debug.Log("[Connection] StartClient called");
+            if (FranticNetworkManager.Instance == null)
+            {
+                Debug.LogError("[Connection] FranticNetworkManager.Instance is NULL");
+                return;
+            }
             var ip = string.IsNullOrEmpty(_ipInputField.text) ? "127.0.0.1" : _ipInputField.text;
             Debug.Log($"[Connection] Connecting to {ip}");
             _statusText.text = $"Connecting to {ip}...";

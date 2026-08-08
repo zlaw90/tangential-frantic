@@ -112,6 +112,12 @@ namespace Frantic.Networking.Editor
                 hubScene = EditorSceneManager.GetActiveScene();
             }
 
+            if (!hubScene.GetRootGameObjects().Any(g => g.name == "NetworkManager"))
+            {
+                Debug.LogWarning("[Setup] NetworkManager not found in Hub scene. Run 'Frantic → Setup Hub Scene' first.");
+                return;
+            }
+
             if (hubScene.GetRootGameObjects().Any(g => g.name == "ConnectionMenu"))
             {
                 Debug.Log("[Setup] ConnectionMenu already in scene");
@@ -172,11 +178,8 @@ namespace Frantic.Networking.Editor
             var connectionMenuGO = new GameObject("ConnectionMenu");
             connectionMenuGO.transform.SetParent(canvasGO.transform);
 
-            var hostBtn = hostButton.GetComponent<Button>();
-            var clientBtn = clientButton.GetComponent<Button>();
-            var ipField = ipInput.GetComponent<TMP_InputField>();
             var connectionMenu = connectionMenuGO.AddComponent<Frantic.Networking.ConnectionMenu>();
-            connectionMenu.SetUI(menuPanel, hostBtn, clientBtn, ipField, statusText);
+            connectionMenu.SetUI(menuPanel, hostButton, clientButton, ipInput, statusText);
 
             EditorSceneManager.SaveScene(hubScene);
             AssetDatabase.SaveAssets();
