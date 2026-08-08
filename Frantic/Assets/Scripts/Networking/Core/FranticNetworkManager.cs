@@ -61,13 +61,13 @@ namespace Frantic.Networking
             _isShuttingDown = true;
         }
 
-        public void StartHost()
+        public void HostStart()
         {
             Debug.Log("[Network] Starting host...");
-            base.StartHost();
+            StartHost();
         }
 
-        public void StartClient()
+        public void ClientStart()
         {
             Debug.Log("[Network] Starting client...");
             NetworkManager.Singleton.StartClient();
