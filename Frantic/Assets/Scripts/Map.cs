@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Wilson : MonoBehaviour
+public class Map : MonoBehaviour
 {
     public PathGroupPreset[] PathGroups;
     public GameObject tilePrefab;
@@ -38,8 +36,8 @@ public class Wilson : MonoBehaviour
                 PathDirections pathDirections = PathDirections.None;
                 if (vertex.North) { pathDirections |= PathDirections.Up; }
                 if (vertex.South) { pathDirections |= PathDirections.Down; }
-                if (vertex.East)  { pathDirections |= PathDirections.Right; }
-                if (vertex.West)  { pathDirections |= PathDirections.Left; }
+                if (vertex.East) { pathDirections |= PathDirections.Right; }
+                if (vertex.West) { pathDirections |= PathDirections.Left; }
 
                 var pathGroup = GetPathGroupPreset(pathDirections);
 
