@@ -130,7 +130,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 32
+        y: 66
         width: 32
         height: 32
       alignment: 0
@@ -151,8 +151,8 @@ TextureImporter:
       name: PathSprites_1
       rect:
         serializedVersion: 2
-        x: 32
-        y: 32
+        x: 33
+        y: 66
         width: 32
         height: 32
       alignment: 0
@@ -173,8 +173,8 @@ TextureImporter:
       name: PathSprites_2
       rect:
         serializedVersion: 2
-        x: 64
-        y: 32
+        x: 66
+        y: 66
         width: 32
         height: 32
       alignment: 0
@@ -195,8 +195,8 @@ TextureImporter:
       name: PathSprites_3
       rect:
         serializedVersion: 2
-        x: 96
-        y: 32
+        x: 99
+        y: 66
         width: 32
         height: 32
       alignment: 0
@@ -217,8 +217,8 @@ TextureImporter:
       name: PathSprites_4
       rect:
         serializedVersion: 2
-        x: 128
-        y: 32
+        x: 132
+        y: 66
         width: 32
         height: 32
       alignment: 0
@@ -239,8 +239,8 @@ TextureImporter:
       name: PathSprites_5
       rect:
         serializedVersion: 2
-        x: 160
-        y: 32
+        x: 165
+        y: 66
         width: 32
         height: 32
       alignment: 0
@@ -262,7 +262,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
+        y: 33
         width: 32
         height: 32
       alignment: 0
@@ -283,8 +283,8 @@ TextureImporter:
       name: PathSprites_7
       rect:
         serializedVersion: 2
-        x: 32
-        y: 0
+        x: 33
+        y: 33
         width: 32
         height: 32
       alignment: 0
@@ -305,8 +305,8 @@ TextureImporter:
       name: PathSprites_8
       rect:
         serializedVersion: 2
-        x: 64
-        y: 0
+        x: 66
+        y: 33
         width: 32
         height: 32
       alignment: 0
@@ -327,8 +327,8 @@ TextureImporter:
       name: PathSprites_9
       rect:
         serializedVersion: 2
-        x: 96
-        y: 0
+        x: 99
+        y: 33
         width: 32
         height: 32
       alignment: 0
@@ -349,8 +349,8 @@ TextureImporter:
       name: PathSprites_10
       rect:
         serializedVersion: 2
-        x: 128
-        y: 0
+        x: 132
+        y: 33
         width: 32
         height: 32
       alignment: 0
@@ -371,8 +371,8 @@ TextureImporter:
       name: PathSprites_11
       rect:
         serializedVersion: 2
-        x: 160
-        y: 0
+        x: 165
+        y: 33
         width: 32
         height: 32
       alignment: 0
@@ -385,6 +385,94 @@ TextureImporter:
       bones: []
       spriteID: dc6b8e2e9dc051e4289a2d48a35d7756
       internalID: 1830950512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PathSprites_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 88519341e2826ca40a0ed92567cec7e3
+      internalID: 1272834976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PathSprites_13
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0e8542ecced4c05479c193dd6405efe3
+      internalID: 1151364809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PathSprites_14
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a1a67a3617635074c8effc3fd52d57ff
+      internalID: -165309294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PathSprites_15
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3a3005a148e710b42b038d01bbe43f76
+      internalID: 1874009450
       vertices: []
       indices: 
       edges: []
@@ -403,12 +491,16 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":32.0,"y":32.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":32.0,"y":32.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":1.0,"y":1.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       PathSprites_0: 4844132824930098960
       PathSprites_1: 12001237
       PathSprites_10: -2120015059
       PathSprites_11: 1830950512
+      PathSprites_12: 1272834976
+      PathSprites_13: 1151364809
+      PathSprites_14: -165309294
+      PathSprites_15: 1874009450
       PathSprites_2: -984971831
       PathSprites_3: -1183085207
       PathSprites_4: -938256435

@@ -7,6 +7,14 @@ public class PathGroupPreset : ScriptableObject
 
     public PathDirections ConnectionDirections;
 
+    public PathGroupPreset()
+    {
+        if ((int)ConnectionDirections == -1)
+        {
+            ConnectionDirections = PathDirections.Up | PathDirections.Down | PathDirections.Left | PathDirections.Right;
+        }
+    }
+
     public Sprite GetTileSprite()
     {
         return tiles[Random.Range(0, tiles.Length)];
@@ -21,6 +29,19 @@ public class PathGroupPreset : ScriptableObject
         return (ConnectionDirections & requiredConnections) == requiredConnections      // Must contain all required connections
             && (ConnectionDirections & forbiddenConnections) == PathDirections.None;    // Must contain no forbidden connections
     }
+
+    /// <summary>
+    /// Checks ot see if this path group exactly matches the specified directions.
+    /// </summary>
+    public bool MatchExact(PathDirections exactDirections)
+    {
+        if ((int)ConnectionDirections == -1)
+        {
+            ConnectionDirections = PathDirections.Up | PathDirections.Down | PathDirections.Left | PathDirections.Right;
+        }
+        return ConnectionDirections == exactDirections;
+    }
+
 
     public float GetNumberOfConnections()
     {
