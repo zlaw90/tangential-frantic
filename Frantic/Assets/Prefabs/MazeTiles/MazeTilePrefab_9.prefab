@@ -286,6 +286,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6483107953108376759}
   - component: {fileID: 172672543282027687}
+  - component: {fileID: 2996090765840646812}
   m_Layer: 0
   m_Name: MazeTilePrefab_9
   m_TagString: Untagged
@@ -370,6 +371,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &2996090765840646812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5700023896453427786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9809bf1345abc5648af68b3a82653f08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: NavMeshPlus::NavMeshPlus.Components.NavMeshModifier
+  m_OverrideArea: 0
+  m_Area: 0
+  m_IgnoreFromBuild: 0
+  m_AffectedAgents: ffffffff
 --- !u!1 &8696207214729049253
 GameObject:
   m_ObjectHideFlags: 0
