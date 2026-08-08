@@ -121,6 +121,7 @@ GameObject:
   - component: {fileID: 1517917616612719554}
   - component: {fileID: 1666649582164873000}
   - component: {fileID: 7290715447200102494}
+  - component: {fileID: 2119410520800035530}
   m_Layer: 0
   m_Name: WallCollider_1
   m_TagString: Untagged
@@ -248,6 +249,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &2119410520800035530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5480143171723975593}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9809bf1345abc5648af68b3a82653f08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: NavMeshPlus::NavMeshPlus.Components.NavMeshModifier
+  m_OverrideArea: 1
+  m_Area: 1
+  m_IgnoreFromBuild: 0
+  m_AffectedAgents: ffffffff
 --- !u!1 &6629156200770766808
 GameObject:
   m_ObjectHideFlags: 0
@@ -259,6 +276,7 @@ GameObject:
   - component: {fileID: 1328717941512945637}
   - component: {fileID: 3368081951359876472}
   - component: {fileID: 809615313473977411}
+  - component: {fileID: 5739580779534999629}
   m_Layer: 0
   m_Name: WallCollider_0
   m_TagString: Untagged
@@ -386,3 +404,19 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &5739580779534999629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6629156200770766808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9809bf1345abc5648af68b3a82653f08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: NavMeshPlus::NavMeshPlus.Components.NavMeshModifier
+  m_OverrideArea: 1
+  m_Area: 1
+  m_IgnoreFromBuild: 0
+  m_AffectedAgents: ffffffff
