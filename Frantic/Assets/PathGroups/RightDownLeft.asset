@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00f09bbd0cfa0a64ca61cfc3f0dfb50b, type: 3}
   m_Name: RightDownLeft
   m_EditorClassIdentifier: Assembly-CSharp::PathGroupPreset
-  tiles:
-  - {fileID: 12001237, guid: c437b0b838b86c240b696d08693c0400, type: 3}
+  mazeTilePrefabs:
+  - {fileID: 375345487719289962, guid: 200ed979d6be3094b83fa12b542bc994, type: 3}
   ConnectionDirections: 14

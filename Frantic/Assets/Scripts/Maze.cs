@@ -31,8 +31,7 @@ public class Maze : MonoBehaviour
                 PathDirections pathDirections = pathDirectionsMap[x, y];
                 var pathGroup = GetPathGroupPreset(pathDirections);
 
-                GameObject tile = Instantiate(tilePrefab, new Vector3(x, y, 0), Quaternion.identity);
-                tile.GetComponent<SpriteRenderer>().sprite = pathGroup.GetTileSprite();
+                GameObject tile = Instantiate(pathGroup.GetMazeTilePrefab(), new Vector3(x, y, 0), Quaternion.identity);
 
                 if (x == playerSpawnX && y == playerSpawnY)
                 {

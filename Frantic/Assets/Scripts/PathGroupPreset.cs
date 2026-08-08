@@ -3,7 +3,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "PathGroup Preset", menuName = "New PathGroup Preset")]
 public class PathGroupPreset : ScriptableObject
 {
-    public Sprite[] tiles;
+    public GameObject[] mazeTilePrefabs;
 
     public PathDirections ConnectionDirections;
 
@@ -15,9 +15,9 @@ public class PathGroupPreset : ScriptableObject
         }
     }
 
-    public Sprite GetTileSprite()
+    public GameObject GetMazeTilePrefab()
     {
-        return tiles[Random.Range(0, tiles.Length)];
+        return mazeTilePrefabs[Random.Range(0, mazeTilePrefabs.Length)];
     }
 
     /// <summary>

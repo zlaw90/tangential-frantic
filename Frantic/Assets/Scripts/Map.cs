@@ -41,8 +41,9 @@ public class Map : MonoBehaviour
 
                 var pathGroup = GetPathGroupPreset(pathDirections);
 
-                GameObject tile = Instantiate(tilePrefab, new Vector3(x, y, 0), Quaternion.identity, this.transform);
-                tile.GetComponent<SpriteRenderer>().sprite = pathGroup.GetTileSprite();
+                GameObject mazeTilePrefab = pathGroup.GetMazeTilePrefab();
+
+                GameObject tile = Instantiate(mazeTilePrefab, new Vector3(x, y, 0), Quaternion.identity, this.transform);
 
                 if (x == playerSpawnX && y == playerSpawnY)
                 {

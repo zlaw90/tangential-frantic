@@ -65,8 +65,7 @@ public class Path : MonoBehaviour
                     touchedMap[x, y] = true;
                     touchedCellCount++;
 
-                    GameObject tile = Instantiate(tilePrefab, new Vector3(x, y, 0), Quaternion.identity);
-                    tile.GetComponent<SpriteRenderer>().sprite = allDirectionsPathGroup.GetTileSprite();
+                    GameObject tile = Instantiate(allDirectionsPathGroup.GetMazeTilePrefab(), new Vector3(x, y, 0), Quaternion.identity);
                     tile.GetComponent<SpriteRenderer>().color = Color.blue;
 
                 }
@@ -166,8 +165,7 @@ public class Path : MonoBehaviour
                             touchedCellCount++;
                             pathDirectionsMap[x, y] = pathGroupToUse.ConnectionDirections;
 
-                            GameObject tile = Instantiate(tilePrefab, new Vector3(x, y, 0), Quaternion.identity);
-                            tile.GetComponent<SpriteRenderer>().sprite = pathGroupToUse.GetTileSprite();
+                            GameObject tile = Instantiate(allDirectionsPathGroup.GetMazeTilePrefab(), new Vector3(x, y, 0), Quaternion.identity);
                         }
                         else
                         {
