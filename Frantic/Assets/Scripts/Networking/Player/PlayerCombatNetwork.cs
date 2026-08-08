@@ -93,7 +93,9 @@ namespace Frantic.Networking
                 {
                     networkObject = projectile.AddComponent<NetworkObject>();
                 }
-                networkObject.Spawn();
+                networkObject.Spawn(true);
+                var projectileNetwork = projectile.GetComponent<ProjectileNetwork>();
+                projectileNetwork?.Initialize(direction, gameObject);
                 Debug.Log($"[Spawn] Projectile spawned at {position}");
             }
             else

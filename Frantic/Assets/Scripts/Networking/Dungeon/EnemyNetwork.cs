@@ -17,6 +17,12 @@ namespace Frantic.Networking
         [SerializeField]
         private int _attackDamage = 10;
 
+        [SerializeField]
+        internal GameObject _lootPrefab;
+
+        [SerializeField]
+        private float _lootDropChance = 0.5f;
+
         private NetworkVariable<int> _networkHealth = new NetworkVariable<int>();
 
         private Transform _targetPlayer;
@@ -103,12 +109,30 @@ namespace Frantic.Networking
         {
             Debug.Log("[Enemy] Enemy died");
 
+            if (Random.value < _lootDropChance && _lootPrefab != null)
+            {
+                SpawnLoot();
+            }
+
             if (NetworkObject != null)
             {
                 NetworkObject.Despawn();
             }
 
             GameObject.Destroy(gameObject);
+        }
+
+        private void SpawnLoot()
+        {
+            var loot = GameObject.Instantiate(_lootPrefab, transform.position, Quaternion.identity);
+            var networkObject = loot.GetComponent<NetworkObject>();
+            if (networkObject == null)
+            {
+                networkObject = loot.AddComponent<NetworkObject>();
+            }
+            networkObject.Spawn(true);
+
+            Debug.Log($"[Spawn] Loot dropped at {transform.position}");
         }
 
         private void OnTriggerEnter2D(Collider2D collision)

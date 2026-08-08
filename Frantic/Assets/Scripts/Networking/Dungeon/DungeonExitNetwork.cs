@@ -3,13 +3,10 @@ using Unity.Netcode;
 
 namespace Frantic.Networking
 {
-    public class InteractionNetwork : FranticNetworkObject
+    public class DungeonExitNetwork : FranticNetworkObject
     {
         [SerializeField]
         private float _interactionRange = 2f;
-
-        [SerializeField]
-        private string _interactionTag = "DungeonEntrance";
 
         private void Update()
         {
@@ -27,14 +24,22 @@ namespace Frantic.Networking
 
             foreach (var collider in nearbyObjects)
             {
-                if (collider.CompareTag(_interactionTag))
+                if (collider.CompareTag("Player"))
                 {
-                    Debug.Log($"[Interaction] Found {collider.name}, requesting ready");
-                    var playerNetwork = GetComponent<PlayerNetwork>();
-                    playerNetwork?.InteractServerRpc();
+                    Debug.Log("[Exit] Player reached dungeon exit, completing run");
+                    CompleteDungeonServerRpc();
                     return;
                 }
             }
+        }
+
+        [ServerRpc]
+        private void CompleteDungeonServerRpc()
+        {
+            if (!IsServer) return;
+
+            Debug.Log("[Exit] Completing dungeon, returning to hub");
+            GameManager.Instance?.CompleteDungeon();
         }
     }
 }

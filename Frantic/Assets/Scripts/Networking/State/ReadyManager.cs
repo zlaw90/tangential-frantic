@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Unity.Netcode;
 
 namespace Frantic.Networking
 {
-    public class ReadyManager : NetworkBehaviour
+    public class ReadyManager : MonoBehaviour
     {
         private const float COUNTDOWN_DURATION = 3f;
 
@@ -13,22 +12,13 @@ namespace Frantic.Networking
         private float _countdownTimer;
         private bool _countdownActive;
 
-        public override void OnNetworkSpawn()
-        {
-            base.OnNetworkSpawn();
-            if (IsServer)
-            {
-                Debug.Log("[Ready] Server initialized ready manager");
-            }
-        }
-
         public void SetReady(ulong clientId, bool ready)
         {
-            if (!IsServer) return;
+            if (!IsServer()) return;
 
             _readyStates[clientId] = ready;
             var readyCount = _readyStates.Values.Count(v => v);
-            var totalPlayers = FranticNetworkManager.Instance.ConnectedClientsList.Count;
+            var totalPlayers = FranticNetworkManager.Instance?.ConnectedClientsList.Count ?? 0;
             Debug.Log($"[Ready] Player {clientId} is {(ready ? "ready" : "not ready")} ({readyCount}/{totalPlayers} ready)");
 
             if (readyCount >= totalPlayers && totalPlayers > 0)
@@ -37,27 +27,22 @@ namespace Frantic.Networking
             }
         }
 
-        [ServerRpc]
-        public void StartCountdownServerRpc()
+        public void StartCountdown()
         {
-            if (!IsServer) return;
-            StartCountdown();
-        }
+            if (!IsServer()) return;
 
-        private void StartCountdown()
-        {
             if (_countdownActive) return;
 
             _countdownActive = true;
             _countdownTimer = COUNTDOWN_DURATION;
             Debug.Log("[Ready] Countdown started");
 
-            OnCountdownStartClientRpc();
+            Debug.Log("[Ready] Countdown: 3");
         }
 
         private void Update()
         {
-            if (!IsServer || !_countdownActive) return;
+            if (!IsServer() || !_countdownActive) return;
 
             _countdownTimer -= Time.deltaTime;
 
@@ -65,25 +50,18 @@ namespace Frantic.Networking
             {
                 Debug.Log("[Ready] Countdown finished, starting dungeon");
                 var gameManager = GetComponent<GameManager>();
-                gameManager?.StartDungeonServerRpc();
+                gameManager?.StartDungeon();
                 _countdownActive = false;
             }
             else if (_countdownTimer <= 1f && _countdownTimer > Time.deltaTime)
             {
-                OnCountdownTickClientRpc(1);
+                Debug.Log("[Ready] Countdown: 1");
             }
         }
 
-        [ClientRpc]
-        private void OnCountdownStartClientRpc()
+        private bool IsServer()
         {
-            OnCountdownTickClientRpc(3);
-        }
-
-        [ClientRpc]
-        private void OnCountdownTickClientRpc(int tick)
-        {
-            Debug.Log($"[Ready] Countdown: {tick}");
+            return FranticNetworkManager.Instance != null && (FranticNetworkManager.Instance.IsHost || FranticNetworkManager.Instance.IsServer);
         }
     }
 }

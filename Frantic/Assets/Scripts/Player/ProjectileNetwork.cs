@@ -15,10 +15,12 @@ namespace Frantic.Networking
         private float _lifetime = 3f;
 
         private Vector3 _direction;
+        private GameObject _owner;
 
-        public void Initialize(Vector3 direction)
+        public void Initialize(Vector3 direction, GameObject owner = null)
         {
-            _direction = direction;
+            _direction = direction.normalized;
+            _owner = owner;
             Destroy(gameObject, _lifetime);
         }
 

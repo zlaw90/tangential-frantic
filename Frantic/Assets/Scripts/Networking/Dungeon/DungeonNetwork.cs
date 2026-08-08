@@ -8,10 +8,13 @@ namespace Frantic.Networking
     public class DungeonNetwork : NetworkBehaviour
     {
         [SerializeField]
-        private GameObject _roomPrefab;
+        internal GameObject _roomPrefab;
 
         [SerializeField]
-        private GameObject _enemyPrefab;
+        internal GameObject _enemyPrefab;
+
+        [SerializeField]
+        internal GameObject _dungeonExitPrefab;
 
         [SerializeField]
         private int _minRooms = 5;
@@ -60,6 +63,12 @@ namespace Frantic.Networking
             }
 
             Debug.Log($"[Dungeon] Generated {roomCount} rooms");
+
+            if (_dungeonExitPrefab != null && _placedRooms.Count > 0)
+            {
+                var lastRoom = _placedRooms.ToArray()[_placedRooms.Count - 1];
+                SpawnDungeonExit(new Vector3(lastRoom.x, lastRoom.y, 0f));
+            }
         }
 
         private void PlaceRoom(Vector3Int position)
@@ -76,7 +85,7 @@ namespace Frantic.Networking
             {
                 networkObject = room.AddComponent<NetworkObject>();
             }
-            networkObject.Spawn();
+            networkObject.Spawn(true);
 
             Debug.Log($"[Spawn] Room placed at {position}");
         }
@@ -116,7 +125,7 @@ namespace Frantic.Networking
             {
                 networkObject = enemy.AddComponent<NetworkObject>();
             }
-            networkObject.Spawn();
+            networkObject.Spawn(true);
 
             Debug.Log($"[Spawn] Enemy spawned at {position}");
         }
@@ -131,6 +140,25 @@ namespace Frantic.Networking
                 2 => Vector3Int.up,
                 _ => Vector3Int.down
             };
+        }
+
+        private void SpawnDungeonExit(Vector3 position)
+        {
+            if (_dungeonExitPrefab == null)
+            {
+                Debug.LogWarning("[Dungeon] No dungeon exit prefab assigned");
+                return;
+            }
+
+            var exit = GameObject.Instantiate(_dungeonExitPrefab, position, Quaternion.identity);
+            var networkObject = exit.GetComponent<NetworkObject>();
+            if (networkObject == null)
+            {
+                networkObject = exit.AddComponent<NetworkObject>();
+            }
+            networkObject.Spawn(true);
+
+            Debug.Log($"[Spawn] DungeonExit placed at {position}");
         }
     }
 }

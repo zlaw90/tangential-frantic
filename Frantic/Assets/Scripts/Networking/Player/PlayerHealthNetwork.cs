@@ -39,20 +39,13 @@ namespace Frantic.Networking
 
             if (currentHealth <= 0)
             {
-                OnPlayerDiedServerRpc();
+                Debug.Log($"[Health] Player died");
+                GameManager.Instance?.Defeat();
             }
             else
             {
                 OnHealthChangedClientRpc(currentHealth);
             }
-        }
-
-        [ServerRpc]
-        private void OnPlayerDiedServerRpc()
-        {
-            Debug.Log($"[Health] Player died");
-            var gameManager = GetComponent<GameManager>();
-            gameManager?.DefeatServerRpc();
         }
 
         [ClientRpc]

@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using Unity.Netcode;
 
 namespace Frantic.Networking
 {
@@ -13,7 +12,7 @@ namespace Frantic.Networking
         Defeat
     }
 
-    public class GameManager : NetworkBehaviour
+    public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
 
@@ -28,17 +27,8 @@ namespace Frantic.Networking
             Instance = this;
         }
 
-        public override void OnNetworkSpawn()
+        public void RequestReady(ulong callerId)
         {
-            base.OnNetworkSpawn();
-            Debug.Log($"[GameManager] Spawned on {(IsHost || IsServer ? "server" : "client")}");
-        }
-
-        [ServerRpc]
-        public void RequestReadyServerRpc(ulong callerId, ServerRpcParams serverRpcParams = default)
-        {
-            if (!IsServer) return;
-
             Debug.Log($"[GameManager] Player {callerId} readying up");
 
             if (_currentState != GameState.Hub) return;
@@ -50,10 +40,9 @@ namespace Frantic.Networking
             }
         }
 
-        [ServerRpc]
-        public void StartCountdownServerRpc()
+        public void StartCountdown()
         {
-            if (!IsServer) return;
+            if (!IsServer()) return;
 
             Debug.Log("[GameManager] Starting countdown");
             _currentState = GameState.ReadyCountdown;
@@ -62,44 +51,46 @@ namespace Frantic.Networking
             var readyManager = GetComponent<ReadyManager>();
             if (readyManager != null)
             {
-                readyManager.StartCountdownServerRpc();
+                readyManager.StartCountdown();
             }
         }
 
-        [ServerRpc]
-        public void StartDungeonServerRpc()
+        public void StartDungeon()
         {
-            if (!IsServer) return;
+            if (!IsServer()) return;
 
             Debug.Log("[GameManager] Starting dungeon generation");
             _currentState = GameState.Dungeon;
             OnStateChanged?.Invoke(_currentState);
 
-            FranticNetworkManager.Instance.LoadDungeonScene();
+            FranticNetworkManager.Instance?.LoadDungeonScene();
         }
 
-        [ServerRpc]
-        public void CompleteDungeonServerRpc()
+        public void CompleteDungeon()
         {
-            if (!IsServer) return;
+            if (!IsServer()) return;
 
             Debug.Log("[GameManager] Dungeon completed");
             _currentState = GameState.Exit;
             OnStateChanged?.Invoke(_currentState);
 
-            FranticNetworkManager.Instance.LoadHubScene();
+            FranticNetworkManager.Instance?.LoadHubScene();
         }
 
-        [ServerRpc]
-        public void DefeatServerRpc()
+        public void Defeat()
         {
-            if (!IsServer) return;
+            if (!IsServer()) return;
 
             Debug.Log("[GameManager] Team defeated");
             _currentState = GameState.Defeat;
             OnStateChanged?.Invoke(_currentState);
 
-            FranticNetworkManager.Instance.LoadHubScene();
+            FranticNetworkManager.Instance?.LoadHubScene();
+        }
+
+        private bool IsServer()
+        {
+            return FranticNetworkManager.Instance != null && (FranticNetworkManager.Instance.IsHost || FranticNetworkManager.Instance.IsServer);
         }
     }
 }

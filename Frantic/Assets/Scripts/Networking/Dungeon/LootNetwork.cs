@@ -14,24 +14,31 @@ namespace Frantic.Networking
         [SerializeField]
         private int _ammoRestore = 15;
 
-        [ServerRpc]
-        private void PickupServerRpc(ServerRpcParams serverRpcParams = default)
+        private void Update()
         {
             if (!IsServer) return;
 
-            var callerId = serverRpcParams.Receive.SenderClientId;
-            var callerClient = NetworkManager.Singleton.ConnectedClients[callerId];
+            foreach (var client in NetworkManager.Singleton.ConnectedClients.Values)
+            {
+                var playerObject = client.PlayerObject;
+                if (playerObject == null) continue;
+
+                var distance = Vector3.Distance(transform.position, playerObject.transform.position);
+                if (distance < _pickupRange)
+                {
+                    PickupForPlayer(client.ClientId);
+                    return;
+                }
+            }
+        }
+
+        private void PickupForPlayer(ulong clientId)
+        {
+            var callerClient = NetworkManager.Singleton.ConnectedClients[clientId];
             var callerObject = callerClient?.PlayerObject;
             if (callerObject == null) return;
 
-            var distance = Vector3.Distance(transform.position, callerObject.transform.position);
-            if (distance > _pickupRange)
-            {
-                Debug.LogWarning("[Loot] Player too far to pickup");
-                return;
-            }
-
-            Debug.Log($"[Loot] Player {callerId} picked up loot");
+            Debug.Log($"[Loot] Player {clientId} picked up loot");
 
             var callerHealth = callerObject.GetComponent<PlayerHealthNetwork>();
             if (callerHealth != null && _healthRestore > 0)
