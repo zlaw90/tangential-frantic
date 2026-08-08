@@ -11,6 +11,9 @@ namespace Frantic.Networking
         public const string DUNGEON_SCENE = "Dungeon";
 
         private bool _isShuttingDown;
+        private bool _inDungeon;
+        private Camera _hubCamera;
+        private Camera _dungeonCamera;
 
         private void Awake()
         {
@@ -27,6 +30,54 @@ namespace Frantic.Networking
         private void Start()
         {
             OnClientDisconnectCallback += OnClientDisconnect;
+            _hubCamera = FindHubCamera();
+        }
+
+        private Camera FindHubCamera()
+        {
+            var hubScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(HUB_SCENE);
+            if (!hubScene.IsValid()) return null;
+
+            foreach (var root in hubScene.GetRootGameObjects())
+            {
+                var cam = root.GetComponent<Camera>();
+                if (cam != null) return cam;
+                foreach (var child in root.GetComponentsInChildren<Camera>())
+                {
+                    if (child.CompareTag("MainCamera")) return child;
+                }
+            }
+            var mainCam = Camera.main;
+            if (mainCam != null && mainCam.gameObject.scene.name == HUB_SCENE) return mainCam;
+            return null;
+        }
+
+        private void DisableSceneCameras(string sceneName)
+        {
+            var scene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneName);
+            if (!scene.IsValid()) return;
+
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                foreach (var cam in root.GetComponentsInChildren<Camera>())
+                {
+                    cam.enabled = false;
+                }
+            }
+        }
+
+        private void EnableSceneCameras(string sceneName)
+        {
+            var scene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneName);
+            if (!scene.IsValid()) return;
+
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                foreach (var cam in root.GetComponentsInChildren<Camera>())
+                {
+                    cam.enabled = true;
+                }
+            }
         }
 
         private void OnDestroy()
@@ -36,7 +87,8 @@ namespace Frantic.Networking
 
         public void StartHost()
         {
-            StartServer();
+            Debug.Log("[Network] Starting host via NGO");
+            base.StartHost();
         }
 
         public void StartClient()
@@ -80,8 +132,9 @@ namespace Frantic.Networking
                 return;
             }
 
-            Debug.Log("[Network] Host loading hub scene");
+            Debug.Log("[Network] Host returning to hub");
             UnityEngine.SceneManagement.SceneManager.LoadScene(HUB_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            _inDungeon = false;
         }
 
         public void LoadDungeonScene()
@@ -94,6 +147,8 @@ namespace Frantic.Networking
             if (_isShuttingDown) return;
 
             Debug.Log("[Network] Host loading dungeon scene");
+            DisableSceneCameras(HUB_SCENE);
+            _inDungeon = true;
             var asyncOp = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(DUNGEON_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Additive);
             asyncOp.allowSceneActivation = true;
             Debug.Log("[Network] Dungeon scene load initiated");
@@ -116,6 +171,8 @@ namespace Frantic.Networking
             var hubScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(HUB_SCENE);
             if (hubScene.IsValid())
             {
+                EnableSceneCameras(HUB_SCENE);
+                _inDungeon = false;
                 var dungeonScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(DUNGEON_SCENE);
                 if (dungeonScene.IsValid())
                 {

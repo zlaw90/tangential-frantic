@@ -115,28 +115,95 @@ namespace Frantic.Networking.Editor
         public static void CreateDungeonScene()
         {
             var dungeonScene = EditorSceneManager.GetSceneByPath("Assets/Scenes/Dungeon.unity");
-            if (dungeonScene.IsValid())
+            if (!dungeonScene.IsValid())
             {
-                Debug.Log("[Setup] Dungeon scene already exists, skipping creation");
-                return;
+                dungeonScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                EditorSceneManager.SetActiveScene(dungeonScene);
+            }
+            else
+            {
+                EditorSceneManager.OpenScene("Assets/Scenes/Dungeon.unity");
+                dungeonScene = EditorSceneManager.GetActiveScene();
             }
 
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            EditorSceneManager.SetActiveScene(scene);
+            var hasDungeonNetwork = false;
+            var hasDungeonExit = false;
 
-            var camera = new GameObject("MainCamera");
-            camera.tag = "MainCamera";
-            camera.AddComponent<Frantic.Networking.CameraController>();
-            var mainCamera = camera.AddComponent<Camera>();
-            mainCamera.orthographic = true;
-            mainCamera.orthographicSize = 8f;
-            camera.transform.position = new Vector3(0f, 0f, -10f);
+            foreach (var root in dungeonScene.GetRootGameObjects())
+            {
+                if (root.name == "DungeonNetwork") hasDungeonNetwork = true;
+                if (root.name == "DungeonExit") hasDungeonExit = true;
+            }
 
-            EditorSceneManager.SaveScene(scene, "Assets/Scenes/Dungeon.unity");
+            if (!hasDungeonNetwork)
+            {
+                var dungeonPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonNetwork.prefab");
+                if (dungeonPrefab != null)
+                {
+                    var dungeonInstance = GameObject.Instantiate(dungeonPrefab);
+                    dungeonInstance.name = "DungeonNetwork";
+                    EditorSceneManager.MoveGameObjectToScene(dungeonInstance, dungeonScene);
+                    Debug.Log("[Setup] Added DungeonNetwork to scene");
+                }
+                else
+                {
+                    Debug.LogWarning("[Setup] DungeonNetwork prefab not found");
+                }
+            }
+            else
+            {
+                Debug.Log("[Setup] DungeonNetwork already in scene");
+            }
+
+            if (!hasDungeonExit)
+            {
+                var exitPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonExit.prefab");
+                if (exitPrefab != null)
+                {
+                    var exitInstance = GameObject.Instantiate(exitPrefab);
+                    exitInstance.name = "DungeonExit";
+                    exitInstance.transform.position = new Vector3(0f, -6f, 0f);
+                    EditorSceneManager.MoveGameObjectToScene(exitInstance, dungeonScene);
+                    Debug.Log("[Setup] Added DungeonExit to scene");
+                }
+                else
+                {
+                    Debug.LogWarning("[Setup] DungeonExit prefab not found");
+                }
+            }
+            else
+            {
+                Debug.Log("[Setup] DungeonExit already in scene");
+            }
+
+            var hasCamera = false;
+            foreach (var root in dungeonScene.GetRootGameObjects())
+            {
+                if (root.CompareTag("MainCamera")) hasCamera = true;
+            }
+
+            if (!hasCamera)
+            {
+                var camera = new GameObject("MainCamera");
+                camera.tag = "MainCamera";
+                camera.AddComponent<Frantic.Networking.CameraController>();
+                var mainCamera = camera.AddComponent<Camera>();
+                mainCamera.orthographic = true;
+                mainCamera.orthographicSize = 8f;
+                camera.transform.position = new Vector3(0f, 0f, -10f);
+                EditorSceneManager.MoveGameObjectToScene(camera, dungeonScene);
+                Debug.Log("[Setup] Added MainCamera to scene");
+            }
+            else
+            {
+                Debug.Log("[Setup] MainCamera already in scene");
+            }
+
+            EditorSceneManager.SaveScene(dungeonScene, "Assets/Scenes/Dungeon.unity");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log("[Setup] Dungeon scene created");
+            Debug.Log("[Setup] Dungeon scene ready");
         }
 
         [MenuItem("Frantic/Setup Player Prefab")]
