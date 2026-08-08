@@ -78,7 +78,7 @@ public class Wilson : MonoBehaviour
             currentPath.Enqueue(currentVertex);
             while (notVisited.Contains(currentVertex))
             {
-                Vertex.AdjacentReturn adjacentReturn = currentVertex.giveAdjacent(random.Next());
+                Vertex.AdjacentReturn adjacentReturn = currentVertex.GetRandomAdjacent();
                 currentVertex.Direction = adjacentReturn.DirectionOfMovement;
                 currentVertex = maze[adjacentReturn.X, adjacentReturn.Y];
                 int firstInstance = -1;
@@ -135,6 +135,14 @@ public class Wilson : MonoBehaviour
 
 internal class Vertex
 {
+    private static readonly PathDirections[] ALL_DIRECTIONS = new PathDirections[]
+    {
+        PathDirections.Up,
+        PathDirections.Down,
+        PathDirections.Left,
+        PathDirections.Right
+    };
+
     public Vertex(int x, int y, int width, int height)
     {
         X = x;
@@ -148,113 +156,88 @@ internal class Vertex
     public int Width { get; set; }
     public int Height { get; set; }
 
-    public enum Directions
-    {
-        north,
-        south,
-        east,
-        west
-
-    };
-    public Directions Direction { get; set; }
+    public PathDirections Direction { get; set; }
     public bool North { get; set; }
     public bool South { get; set; }
     public bool East { get; set; }
     public bool West { get; set; }
 
-    public void setBoolOnDirectionToTrue(Directions direction)
+    public void setBoolOnDirectionToTrue(PathDirections direction)
     {
         switch (direction)
         {
-            case Directions.north:
-                North = true;
-                break;
-            case Directions.south:
-                South = true;
-                break;
-            case Directions.east:
-                East = true;
-                break;
-            case Directions.west:
-                West = true;
-                break;
+            case PathDirections.Up:    North = true; break;
+            case PathDirections.Down:  South = true; break;
+            case PathDirections.Right: East  = true; break;
+            case PathDirections.Left:  West  = true; break;
         }
     }
-    public void setBoolOnOpositeDirectionToTrue(Directions direction)
+    public void setBoolOnOpositeDirectionToTrue(PathDirections direction)
     {
         switch (direction)
         {
-            case Directions.north:
-                South = true;
-                break;
-            case Directions.south:
-                North = true;
-                break;
-            case Directions.east:
-                West = true;
-                break;
-            case Directions.west:
-                East = true;
-                break;
+            case PathDirections.Up:    South = true; break;
+            case PathDirections.Down:  North = true; break;
+            case PathDirections.Right: West  = true; break;
+            case PathDirections.Left:  East  = true; break;
         }
     }
     public class AdjacentReturn
     {
         public int X { get; set; }
         public int Y { get; set; }
-        public Directions DirectionOfMovement { get; set; }
-        public AdjacentReturn(int x, int y, Directions directionOfMovement)
+        public PathDirections DirectionOfMovement { get; set; }
+        public AdjacentReturn(int x, int y, PathDirections directionOfMovement)
         {
             X = x;
             Y = y;
             DirectionOfMovement = directionOfMovement;
         }
     }
-    public AdjacentReturn giveAdjacent(int randomSeed)
+    public AdjacentReturn GetRandomAdjacent()
     {
-        System.Random random = new System.Random(randomSeed);
-        Directions[] allDirections = (Directions[])Enum.GetValues(typeof(Directions));
-        Directions randomDirection = (Directions)allDirections.GetValue(random.Next(4));
+        PathDirections randomDirection = ALL_DIRECTIONS[UnityEngine.Random.Range(0, ALL_DIRECTIONS.Length)];
+
         bool viableAdjacent = false;
         while (!viableAdjacent)
         {
-            randomDirection = (Directions)allDirections.GetValue(random.Next(4));
+            randomDirection = ALL_DIRECTIONS[UnityEngine.Random.Range(0, ALL_DIRECTIONS.Length)];
             viableAdjacent = true;
-            if (X == 0 && randomDirection == Directions.west)
+            if (X == 0 && randomDirection == PathDirections.Left)
             {
                 viableAdjacent = false;
             }
-            else if (X == Width - 1 && randomDirection == Directions.east)
+            else if (X == Width - 1 && randomDirection == PathDirections.Right)
             {
                 viableAdjacent = false;
             }
-            else if (Y == Height - 1 && randomDirection == Directions.north)
+            else if (Y == Height - 1 && randomDirection == PathDirections.Up)
             {
                 viableAdjacent = false;
             }
-            else if (Y == 0 && randomDirection == Directions.south)
+            else if (Y == 0 && randomDirection == PathDirections.Down)
             {
                 viableAdjacent = false;
             }
         }
-        ;
+
         AdjacentReturn adjacentReturn = new AdjacentReturn(X, Y, randomDirection);
-        if (randomDirection == Directions.north)
+        if (randomDirection == PathDirections.Up)
         {
             adjacentReturn.Y++;
             //coordinates[1]--;
         }
-        else if (randomDirection == Directions.south)
+        else if (randomDirection == PathDirections.Down)
         {
             adjacentReturn.Y--;
             //coordinates[1]++;
         }
-        else if (randomDirection == Directions.east)
+        else if (randomDirection == PathDirections.Right)
         {
             adjacentReturn.X++;
             //coordinates[0]++;
         }
-        else if (randomDirection == Directions.west)
+        else if (randomDirection == PathDirections.Left)
         {
             adjacentReturn.X--;
             //coordinates[0]--;
