@@ -94,7 +94,8 @@ namespace Frantic.Networking
             if (_isShuttingDown) return;
 
             Debug.Log("[Network] Host loading dungeon scene");
-            UnityEngine.SceneManagement.SceneManager.LoadScene(DUNGEON_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            var asyncOp = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(DUNGEON_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Additive);
+            asyncOp.allowSceneActivation = true;
             Debug.Log("[Network] Dungeon scene load initiated");
         }
 
@@ -111,7 +112,16 @@ namespace Frantic.Networking
             }
 
             Debug.Log("[Network] Host loading hub scene");
-            UnityEngine.SceneManagement.SceneManager.LoadScene(HUB_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(HUB_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Additive);
+            var hubScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(HUB_SCENE);
+            if (hubScene.IsValid())
+            {
+                var dungeonScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(DUNGEON_SCENE);
+                if (dungeonScene.IsValid())
+                {
+                    UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(DUNGEON_SCENE);
+                }
+            }
         }
     }
 }

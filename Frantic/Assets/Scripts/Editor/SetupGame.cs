@@ -13,29 +13,6 @@ namespace Frantic.Networking.Editor
 {
     public class SetupGame
     {
-        static Sprite _greenSprite;
-        static Sprite _redSprite;
-        static Sprite _graySprite;
-        static Sprite _yellowSprite;
-        static Sprite _blueSprite;
-
-        static Sprite GetSprite(string name)
-        {
-            var spritePath = "Assets/Sprites/" + name + ".sprite";
-            var existingSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
-            if (existingSprite == null)
-            {
-                Debug.LogWarning("[Setup] Sprite not found: " + spritePath + " — assign it manually in the prefab");
-            }
-            return existingSprite;
-        }
-
-        static Sprite GreenSprite => _greenSprite ??= GetSprite("Green");
-        static Sprite RedSprite => _redSprite ??= GetSprite("Red");
-        static Sprite GraySprite => _graySprite ??= GetSprite("Gray");
-        static Sprite YellowSprite => _yellowSprite ??= GetSprite("Yellow");
-        static Sprite BlueSprite => _blueSprite ??= GetSprite("Blue");
-
         [MenuItem("Frantic/Setup All")]
         public static void SetupEverything()
         {
@@ -62,6 +39,13 @@ namespace Frantic.Networking.Editor
         [MenuItem("Frantic/Setup Hub Scene")]
         public static void CreateHubScene()
         {
+            var hubScene = EditorSceneManager.GetSceneByPath("Assets/Scenes/Hub.unity");
+            if (hubScene.IsValid())
+            {
+                Debug.Log("[Setup] Hub scene already exists, skipping creation");
+                return;
+            }
+
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             EditorSceneManager.SetActiveScene(scene);
 
@@ -69,7 +53,7 @@ namespace Frantic.Networking.Editor
             var nmComponent = networkManager.AddComponent<Frantic.Networking.FranticNetworkManager>();
 
             var transport = networkManager.AddComponent<UnityTransport>();
-            transport.SetConnectionData("0.0.0.0", 7777);
+            transport.SetConnectionData("0.0.0.0", 7778);
             nmComponent.NetworkConfig.NetworkTransport = transport;
 
             var gameManager = new GameObject("GameManager");
@@ -85,15 +69,6 @@ namespace Frantic.Networking.Editor
             boxCollider.size = new Vector2(4f, 2f);
             entrance.transform.position = new Vector3(0f, -8f, 0f);
 
-            var entranceSpriteRenderer = entrance.AddComponent<SpriteRenderer>();
-            entranceSpriteRenderer.sprite = BlueSprite;
-            entranceSpriteRenderer.sortingOrder = 5;
-
-            if (BlueSprite == null)
-            {
-                Debug.LogWarning("[Setup] No Blue sprite found — Dungeon Entrance will be invisible. Create Assets/Sprites/Blue.sprite");
-            }
-
             var camera = new GameObject("MainCamera");
             camera.tag = "MainCamera";
             camera.AddComponent<Frantic.Networking.CameraController>();
@@ -101,8 +76,6 @@ namespace Frantic.Networking.Editor
             mainCamera.orthographic = true;
             mainCamera.orthographicSize = 8f;
             camera.transform.position = new Vector3(0f, 0f, -10f);
-
-            var hubRoot = new GameObject("Hub");
 
             EditorSceneManager.SaveScene(scene, "Assets/Scenes/Hub.unity");
             AssetDatabase.SaveAssets();
@@ -141,23 +114,15 @@ namespace Frantic.Networking.Editor
         [MenuItem("Frantic/Setup Dungeon Scene")]
         public static void CreateDungeonScene()
         {
+            var dungeonScene = EditorSceneManager.GetSceneByPath("Assets/Scenes/Dungeon.unity");
+            if (dungeonScene.IsValid())
+            {
+                Debug.Log("[Setup] Dungeon scene already exists, skipping creation");
+                return;
+            }
+
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             EditorSceneManager.SetActiveScene(scene);
-
-            var dungeonPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DungeonNetwork.prefab");
-            if (dungeonPrefab != null)
-            {
-                var dungeonInstance = GameObject.Instantiate(dungeonPrefab);
-                dungeonInstance.name = "DungeonNetwork";
-                EditorSceneManager.MoveGameObjectToScene(dungeonInstance, scene);
-            }
-            else
-            {
-                Debug.LogWarning("[Setup] DungeonNetwork prefab not found, creating placeholder");
-                var dungeonNetwork = new GameObject("DungeonNetwork");
-                dungeonNetwork.AddComponent<NetworkObject>();
-                dungeonNetwork.AddComponent<Frantic.Networking.DungeonNetwork>();
-            }
 
             var camera = new GameObject("MainCamera");
             camera.tag = "MainCamera";
@@ -201,15 +166,11 @@ namespace Frantic.Networking.Editor
             playerRoot.AddComponent<CircleCollider2D>().radius = 0.5f;
 
             var playerInput = playerRoot.AddComponent<PlayerInput>();
-            var inputActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
-            if (inputActions != null) playerInput.actions = inputActions;
 
             playerRoot.AddComponent<Frantic.Networking.PlayerNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerHealthNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerCombatNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerMovement>();
-            var combat = playerRoot.GetComponent<Frantic.Networking.PlayerCombatNetwork>();
-            if (combat != null) combat._projectilePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Projectile.prefab");
             playerRoot.AddComponent<Frantic.Networking.InteractionNetwork>();
 
             var weaponTip = new GameObject("WeaponTip");
@@ -244,18 +205,9 @@ namespace Frantic.Networking.Editor
             enemyRoot.AddComponent<Rigidbody2D>().gravityScale = 0f;
             enemyRoot.AddComponent<CircleCollider2D>().radius = 0.5f;
 
-            var enemySpriteRenderer = enemyRoot.AddComponent<SpriteRenderer>();
-            enemySpriteRenderer.sprite = RedSprite;
-            enemySpriteRenderer.sortingOrder = 10;
-
-            if (RedSprite == null)
-            {
-                Debug.LogWarning("[Setup] No Red sprite found — Enemy will be invisible. Create Assets/Sprites/Red.sprite");
-            }
+            enemyRoot.AddComponent<SpriteRenderer>();
 
             var enemyNetwork = enemyRoot.AddComponent<Frantic.Networking.EnemyNetwork>();
-            var lootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Loot.prefab");
-            if (lootPrefab != null) enemyNetwork._lootPrefab = lootPrefab;
 
             PrefabUtility.SaveAsPrefabAsset(enemyRoot, prefabPath);
             GameObject.DestroyImmediate(enemyRoot);
@@ -284,14 +236,7 @@ namespace Frantic.Networking.Editor
             roomNetworkTransform.UseQuaternionSynchronization = false;
             roomRoot.AddComponent<BoxCollider2D>().size = new Vector2(10f, 10f);
 
-            var roomSpriteRenderer = roomRoot.AddComponent<SpriteRenderer>();
-            roomSpriteRenderer.sprite = GraySprite;
-            roomSpriteRenderer.sortingOrder = 0;
-
-            if (GraySprite == null)
-            {
-                Debug.LogWarning("[Setup] No Gray sprite found — Rooms will be invisible. Create Assets/Sprites/Gray.sprite");
-            }
+            roomRoot.AddComponent<SpriteRenderer>();
 
             PrefabUtility.SaveAsPrefabAsset(roomRoot, prefabPath);
             GameObject.DestroyImmediate(roomRoot);
@@ -350,10 +295,7 @@ namespace Frantic.Networking.Editor
             lootRoot.AddComponent<Rigidbody2D>().gravityScale = 0f;
             lootRoot.AddComponent<CircleCollider2D>().radius = 0.3f;
 
-            var lootSpriteRenderer = lootRoot.AddComponent<SpriteRenderer>();
-            lootSpriteRenderer.sprite = GreenSprite;
-            lootSpriteRenderer.sortingOrder = 15;
-
+            lootRoot.AddComponent<SpriteRenderer>();
             lootRoot.AddComponent<Frantic.Networking.LootNetwork>();
 
             PrefabUtility.SaveAsPrefabAsset(lootRoot, prefabPath);
@@ -381,10 +323,7 @@ namespace Frantic.Networking.Editor
             exitRoot.AddComponent<BoxCollider2D>().isTrigger = true;
             exitRoot.AddComponent<BoxCollider2D>().size = new Vector2(3f, 2f);
 
-            var exitSpriteRenderer = exitRoot.AddComponent<SpriteRenderer>();
-            exitSpriteRenderer.sprite = BlueSprite;
-            exitSpriteRenderer.sortingOrder = 5;
-
+            exitRoot.AddComponent<SpriteRenderer>();
             exitRoot.AddComponent<Frantic.Networking.DungeonExitNetwork>();
 
             PrefabUtility.SaveAsPrefabAsset(exitRoot, prefabPath);
