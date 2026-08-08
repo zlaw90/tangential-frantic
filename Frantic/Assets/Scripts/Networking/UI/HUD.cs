@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Linq;
 
 namespace Frantic.Networking
 {
@@ -15,14 +16,30 @@ namespace Frantic.Networking
         [SerializeField]
         private TMP_Text _readyText;
 
+        public void SetUI(Image healthBar, TMP_Text ammoText, TMP_Text readyText)
+        {
+            _healthBar = healthBar;
+            _ammoText = ammoText;
+            _readyText = readyText;
+        }
+
         private PlayerHealthNetwork _health;
         private PlayerCombatNetwork _combat;
         private ReadyManager _readyManager;
 
         private void Awake()
         {
-            _health = FindObjectOfType<PlayerHealthNetwork>();
-            _combat = FindObjectOfType<PlayerCombatNetwork>();
+            var players = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
+            foreach (var player in players)
+            {
+                if (player.IsOwner)
+                {
+                    _health = player.GetComponent<PlayerHealthNetwork>();
+                    _combat = player.GetComponent<PlayerCombatNetwork>();
+                    break;
+                }
+            }
+
             _readyManager = FindObjectOfType<ReadyManager>();
         }
 
@@ -43,7 +60,7 @@ namespace Frantic.Networking
             {
                 var readyStates = _readyManager.GetReadyStates();
                 var totalPlayers = FranticNetworkManager.Instance?.ConnectedClientsList.Count ?? 0;
-                var readyCount = readyStates.Count(v => v);
+                var readyCount = readyStates.Values.Count(x => x);
                 _readyText.text = $"Ready: {readyCount}/{totalPlayers}";
             }
         }

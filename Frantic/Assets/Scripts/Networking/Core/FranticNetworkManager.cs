@@ -26,7 +26,7 @@ namespace Frantic.Networking
         }
 
         [SerializeField]
-        private GameObject _playerPrefabOverride;
+        public GameObject _playerPrefabOverride;
 
         private void Start()
         {

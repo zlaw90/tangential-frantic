@@ -6,6 +6,9 @@ using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.UI;
+using TMPro;
 using UnityEngine.InputSystem;
 using Unity.Netcode.Components;
 
@@ -18,6 +21,8 @@ namespace Frantic.Networking.Editor
         {
             ClearOldAssets();
             CreateHubScene();
+            SetupConnectionMenu();
+            SetupHUD();
             CreateEnemyPrefab();
             CreateRoomPrefab();
             CreateDungeonExitPrefab();
@@ -91,6 +96,268 @@ namespace Frantic.Networking.Editor
             Debug.Log("[Setup] Hub scene created");
         }
 
+        [MenuItem("Frantic/Setup Connection Menu")]
+        public static void SetupConnectionMenu()
+        {
+            var hubScene = EditorSceneManager.GetSceneByPath("Assets/Scenes/Hub.unity");
+            if (!hubScene.IsValid())
+            {
+                Debug.LogWarning("[Setup] Hub scene not found");
+                return;
+            }
+
+            if (!hubScene.isLoaded)
+            {
+                EditorSceneManager.OpenScene("Assets/Scenes/Hub.unity");
+                hubScene = EditorSceneManager.GetActiveScene();
+            }
+
+            if (hubScene.GetRootGameObjects().Any(g => g.name == "ConnectionMenu"))
+            {
+                Debug.Log("[Setup] ConnectionMenu already in scene");
+                return;
+            }
+
+            var canvasGO = new GameObject("Canvas");
+            canvasGO.transform.position = Vector3.zero;
+            EditorSceneManager.MoveGameObjectToScene(canvasGO, hubScene);
+
+            var canvas = canvasGO.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+            var canvasRect = canvasGO.GetComponent<RectTransform>();
+            canvasRect.anchorMin = Vector2.zero;
+            canvasRect.anchorMax = Vector2.one;
+            canvasRect.sizeDelta = Vector2.zero;
+            canvasRect.anchoredPosition = Vector2.zero;
+
+            var canvasScaler = canvasGO.AddComponent<CanvasScaler>();
+            canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            canvasScaler.referenceResolution = new Vector2(1920, 1080);
+            canvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            canvasScaler.matchWidthOrHeight = 0.5f;
+
+            canvasGO.AddComponent<GraphicRaycaster>();
+
+            var menuPanel = new GameObject("MenuPanel");
+            menuPanel.transform.SetParent(canvasGO.transform);
+            menuPanel.transform.localPosition = Vector3.zero;
+
+            var panelRect = menuPanel.AddComponent<RectTransform>();
+            panelRect.anchorMin = Vector2.zero;
+            panelRect.anchorMax = Vector2.zero;
+            panelRect.pivot = new Vector2(0.5f, 0.5f);
+            panelRect.sizeDelta = new Vector2(400f, 300f);
+            panelRect.anchoredPosition = Vector2.zero;
+
+            var panelImage = menuPanel.AddComponent<Image>();
+            panelImage.color = new Color(0f, 0f, 0f, 0.8f);
+
+            var hostButton = CreateButton("Host Button", "HOST", new Vector2(0f, 50f), new Vector2(200f, 50f), () => { });
+            hostButton.transform.SetParent(menuPanel.transform);
+
+            var clientButton = CreateButton("Client Button", "CLIENT", new Vector2(0f, -50f), new Vector2(200f, 50f), () => { });
+            clientButton.transform.SetParent(menuPanel.transform);
+
+            var ipInput = CreateInputField("IP Input", new Vector2(0f, 100f), new Vector2(200f, 40f));
+            ipInput.transform.SetParent(menuPanel.transform);
+            if (ipInput.placeholder is TMPro.TextMeshProUGUI placeholderText)
+            {
+                placeholderText.text = "IP Address";
+            }
+
+            var statusText = CreateText("Status Text", "Select mode to start", new Vector2(0f, -120f), new Vector2(300f, 30f));
+            statusText.transform.SetParent(menuPanel.transform);
+
+            var connectionMenuGO = new GameObject("ConnectionMenu");
+            connectionMenuGO.transform.SetParent(canvasGO.transform);
+
+            var hostBtn = hostButton.GetComponent<Button>();
+            var clientBtn = clientButton.GetComponent<Button>();
+            var ipField = ipInput.GetComponent<TMP_InputField>();
+            var connectionMenu = connectionMenuGO.AddComponent<Frantic.Networking.ConnectionMenu>();
+            connectionMenu.SetUI(menuPanel, hostBtn, clientBtn, ipField, statusText);
+
+            EditorSceneManager.SaveScene(hubScene);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            Debug.Log("[Setup] ConnectionMenu created");
+        }
+
+        [MenuItem("Frantic/Setup HUD")]
+        public static void SetupHUD()
+        {
+            var hubScene = EditorSceneManager.GetSceneByPath("Assets/Scenes/Hub.unity");
+            if (!hubScene.IsValid())
+            {
+                Debug.LogWarning("[Setup] Hub scene not found");
+                return;
+            }
+
+            if (!hubScene.isLoaded)
+            {
+                EditorSceneManager.OpenScene("Assets/Scenes/Hub.unity");
+                hubScene = EditorSceneManager.GetActiveScene();
+            }
+
+            if (hubScene.GetRootGameObjects().Any(g => g.name == "HUD"))
+            {
+                Debug.Log("[Setup] HUD already in scene");
+                return;
+            }
+
+            var hudGO = new GameObject("HUD");
+
+            var hudRect = hudGO.AddComponent<RectTransform>();
+            hudRect.anchorMin = Vector2.zero;
+            hudRect.anchorMax = Vector2.zero;
+            hudRect.pivot = new Vector2(0.5f, 0.5f);
+            hudRect.anchoredPosition = Vector2.zero;
+            hudRect.sizeDelta = Vector2.zero;
+
+            EditorSceneManager.MoveGameObjectToScene(hudGO, hubScene);
+
+            var hud = hudGO.AddComponent<Frantic.Networking.HUD>();
+
+            var healthBarGO = new GameObject("HealthBar");
+            healthBarGO.transform.SetParent(hudGO.transform);
+
+            var healthBarRect = healthBarGO.AddComponent<RectTransform>();
+            healthBarRect.anchoredPosition = new Vector2(-100f, -30f);
+            healthBarRect.sizeDelta = new Vector2(150f, 20f);
+            healthBarRect.anchorMin = Vector2.zero;
+            healthBarRect.anchorMax = Vector2.zero;
+            healthBarRect.pivot = new Vector2(0.5f, 0.5f);
+
+            var healthBarImage = healthBarGO.AddComponent<Image>();
+            healthBarImage.color = Color.red;
+
+            var healthBarBackground = new GameObject("HealthBarBackground");
+            healthBarBackground.transform.SetParent(healthBarGO.transform);
+            healthBarBackground.transform.localPosition = Vector3.zero;
+
+            var bgRect = healthBarBackground.AddComponent<RectTransform>();
+            bgRect.sizeDelta = new Vector2(150f, 20f);
+
+            var bgImage = healthBarBackground.AddComponent<Image>();
+            bgImage.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+            bgImage.raycastTarget = false;
+
+            healthBarRect.SetAsFirstSibling();
+
+            var ammoTextGO = new GameObject("AmmoText");
+            ammoTextGO.transform.SetParent(hudGO.transform);
+
+            var ammoTextRect = ammoTextGO.AddComponent<RectTransform>();
+            ammoTextRect.anchoredPosition = new Vector2(100f, -30f);
+            ammoTextRect.sizeDelta = new Vector2(100f, 30f);
+            ammoTextRect.anchorMin = Vector2.zero;
+            ammoTextRect.anchorMax = Vector2.zero;
+            ammoTextRect.pivot = new Vector2(0.5f, 0.5f);
+
+            var ammoText = ammoTextGO.AddComponent<TextMeshProUGUI>();
+            ammoText.fontSize = 18;
+            ammoText.alignment = TextAlignmentOptions.Center;
+            ammoText.text = "Ammo: 30";
+
+            var readyTextGO = new GameObject("ReadyText");
+            readyTextGO.transform.SetParent(hudGO.transform);
+
+            var readyTextRect = readyTextGO.AddComponent<RectTransform>();
+            readyTextRect.anchoredPosition = new Vector2(0f, 80f);
+            readyTextRect.sizeDelta = new Vector2(200f, 30f);
+            readyTextRect.anchorMin = Vector2.zero;
+            readyTextRect.anchorMax = Vector2.zero;
+            readyTextRect.pivot = new Vector2(0.5f, 0.5f);
+
+            var readyText = readyTextGO.AddComponent<TextMeshProUGUI>();
+            readyText.fontSize = 16;
+            readyText.alignment = TextAlignmentOptions.Center;
+            readyText.text = "Ready: 0/1";
+
+            hud.SetUI(healthBarImage, ammoText, readyText);
+
+            EditorSceneManager.SaveScene(hubScene);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            Debug.Log("[Setup] HUD created");
+        }
+
+        static Button CreateButton(string name, string buttonText, Vector2 anchoredPosition, Vector2 size, System.Action onClick)
+        {
+            var buttonGO = new GameObject(name);
+
+            var rectTransform = buttonGO.AddComponent<RectTransform>();
+            rectTransform.anchoredPosition = anchoredPosition;
+            rectTransform.sizeDelta = size;
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.zero;
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+            var buttonImage = buttonGO.AddComponent<Image>();
+            buttonImage.color = new Color(0.3f, 0.3f, 0.8f);
+
+            var button = buttonGO.AddComponent<Button>();
+            button.onClick.AddListener(() => onClick());
+
+            var buttonTextGO = new GameObject("ButtonText");
+            buttonTextGO.transform.SetParent(buttonGO.transform);
+            buttonTextGO.transform.localPosition = Vector3.zero;
+
+            var textRect = buttonTextGO.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+
+            var text = buttonTextGO.AddComponent<TextMeshProUGUI>();
+            text.fontSize = 20;
+            text.text = buttonText;
+            text.alignment = TextAlignmentOptions.Center;
+
+            return button;
+        }
+
+        static TMP_InputField CreateInputField(string name, Vector2 anchoredPosition, Vector2 size)
+        {
+            var inputGO = new GameObject(name);
+
+            var rectTransform = inputGO.AddComponent<RectTransform>();
+            rectTransform.anchoredPosition = anchoredPosition;
+            rectTransform.sizeDelta = size;
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.zero;
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+            var inputImage = inputGO.AddComponent<Image>();
+            inputImage.color = new Color(0.2f, 0.2f, 0.2f);
+
+            var input = inputGO.AddComponent<TMP_InputField>();
+            input.placeholder = null;
+            input.text = "";
+
+            return input;
+        }
+
+        static TextMeshProUGUI CreateText(string name, string text, Vector2 anchoredPosition, Vector2 size)
+        {
+            var textGO = new GameObject(name);
+
+            var rectTransform = textGO.AddComponent<RectTransform>();
+            rectTransform.anchoredPosition = anchoredPosition;
+            rectTransform.sizeDelta = size;
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.zero;
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+            var textComponent = textGO.AddComponent<TextMeshProUGUI>();
+            textComponent.fontSize = 16;
+            textComponent.text = text;
+            textComponent.alignment = TextAlignmentOptions.Center;
+
+            return textComponent;
+        }
+
         [MenuItem("Frantic/Setup Dungeon Network Prefab")]
         public static void CreateDungeonNetworkPrefab()
         {
@@ -107,7 +374,6 @@ namespace Frantic.Networking.Editor
 
             if (roomPrefab != null) dungeonNetwork._roomPrefab = roomPrefab;
             if (enemyPrefab != null) dungeonNetwork._enemyPrefab = enemyPrefab;
-            if (exitPrefab != null) dungeonNetwork._dungeonExitPrefab = exitPrefab;
 
             PrefabUtility.SaveAsPrefabAsset(dungeonRoot, prefabPath);
             GameObject.DestroyImmediate(dungeonRoot);

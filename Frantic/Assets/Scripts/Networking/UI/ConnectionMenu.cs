@@ -21,15 +21,41 @@ namespace Frantic.Networking
         [SerializeField]
         private TMP_Text _statusText;
 
+        public void SetUI(GameObject menuPanel, Button hostButton, Button clientButton, TMP_InputField ipInput, TMP_Text statusText)
+        {
+            _menuPanel = menuPanel;
+            _hostButton = hostButton;
+            _clientButton = clientButton;
+            _ipInputField = ipInput;
+            _statusText = statusText;
+            SetupListeners();
+        }
+
         private void Awake()
         {
-            _hostButton.onClick.AddListener(StartHost);
-            _clientButton.onClick.AddListener(StartClient);
+            if (_hostButton != null && _clientButton != null)
+            {
+                SetupListeners();
+            }
         }
 
         private void Start()
         {
-            _statusText.text = "Select mode to start";
+            if (_statusText != null) _statusText.text = "Select mode to start";
+        }
+
+        public void SetupListeners()
+        {
+            if (_hostButton != null)
+            {
+                _hostButton.onClick.RemoveAllListeners();
+                _hostButton.onClick.AddListener(StartHost);
+            }
+            if (_clientButton != null)
+            {
+                _clientButton.onClick.RemoveAllListeners();
+                _clientButton.onClick.AddListener(StartClient);
+            }
         }
 
         private void StartHost()
