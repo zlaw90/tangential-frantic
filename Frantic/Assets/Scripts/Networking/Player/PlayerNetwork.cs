@@ -15,11 +15,6 @@ namespace Frantic.Networking
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
-            Debug.Log($"[Player] Spawned for client {OwnerClientId}");
-
-            var sr = GetComponent<SpriteRenderer>();
-            Debug.Log($"[Player] SpriteRenderer {(sr != null ? "present" : "MISSING")} sprite={(sr?.sprite != null ? sr.sprite.name : "null")}");
-
             _health = GetComponent<PlayerHealthNetwork>();
             _combat = GetComponent<PlayerCombatNetwork>();
 
@@ -41,8 +36,15 @@ namespace Frantic.Networking
                 {
                     var mouseWorldPos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
                     var direction = (mouseWorldPos - transform.position).normalized;
-                    Debug.Log($"[Player] Fire pressed direction={direction}");
                     _combat.FireWeaponServerRpc(new Vector2(direction.x, direction.y));
+                }
+            }
+
+            if (InputManager.Reload && _combat != null)
+            {
+                if (_combat.CurrentAmmo <= 0)
+                {
+                    _combat.ReloadServerRpc();
                 }
             }
         }

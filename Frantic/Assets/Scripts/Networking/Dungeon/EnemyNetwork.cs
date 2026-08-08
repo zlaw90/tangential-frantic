@@ -31,8 +31,6 @@ namespace Frantic.Networking
         {
             base.OnNetworkSpawn();
             _networkHealth.Value = _maxHealth;
-            Debug.Log($"[Enemy] Spawned with {_maxHealth} HP");
-
             FindNearestPlayer();
         }
 
@@ -96,8 +94,6 @@ namespace Frantic.Networking
             currentHealth = Mathf.Max(0, currentHealth - damage);
             _networkHealth.Value = currentHealth;
 
-            Debug.Log($"[Enemy] Took {damage} damage, health: {currentHealth}/{_maxHealth}");
-
             if (currentHealth <= 0)
             {
                 DieServerRpc();
@@ -107,8 +103,6 @@ namespace Frantic.Networking
         [ServerRpc]
         private void DieServerRpc()
         {
-            Debug.Log("[Enemy] Enemy died");
-
             if (Random.value < _lootDropChance && _lootPrefab != null)
             {
                 SpawnLoot();
@@ -131,19 +125,6 @@ namespace Frantic.Networking
                 networkObject = loot.AddComponent<NetworkObject>();
             }
             networkObject.Spawn(true);
-
-            Debug.Log($"[Spawn] Loot dropped at {transform.position}");
-        }
-
-        private void OnTriggerEnter2D(Collider2D collision)
-        {
-            if (!IsServer) return;
-
-            var playerHealth = collision.GetComponent<PlayerHealthNetwork>();
-            if (playerHealth != null)
-            {
-                playerHealth.TakeDamageServerRpc(_attackDamage);
-            }
         }
     }
 }

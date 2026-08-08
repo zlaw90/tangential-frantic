@@ -24,7 +24,6 @@ namespace Frantic.Networking
             var angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg - 90f;
             transform.rotation = Quaternion.Euler(0, 0, angle);
             Destroy(gameObject, _lifetime);
-            Debug.Log($"[Projectile] Initialize called dir={_direction} speed={_speed} lifetime={_lifetime}");
         }
 
         private void Update()

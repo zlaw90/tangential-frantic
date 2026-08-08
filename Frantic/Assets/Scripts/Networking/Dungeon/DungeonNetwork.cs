@@ -13,8 +13,7 @@ namespace Frantic.Networking
         [SerializeField]
         public GameObject _enemyPrefab;
 
-        [SerializeField]
-        public GameObject _dungeonExitPrefab;
+
 
         [SerializeField]
         private int _minRooms = 5;
@@ -63,12 +62,6 @@ namespace Frantic.Networking
             }
 
             Debug.Log($"[Dungeon] Generated {roomCount} rooms");
-
-            if (_dungeonExitPrefab != null && _placedRooms.Count > 0)
-            {
-                var lastRoom = _placedRooms.ToArray()[_placedRooms.Count - 1];
-                SpawnDungeonExit(new Vector3(lastRoom.x, lastRoom.y, 0f));
-            }
         }
 
         private void PlaceRoom(Vector3Int position)
@@ -87,7 +80,7 @@ namespace Frantic.Networking
             }
             networkObject.Spawn(true);
 
-            Debug.Log($"[Spawn] Room placed at {position}");
+            Debug.Log($"[Spawn] Room at {position}");
         }
 
         private void SpawnEnemiesForRoom(Vector3Int roomPosition)
@@ -127,7 +120,7 @@ namespace Frantic.Networking
             }
             networkObject.Spawn(true);
 
-            Debug.Log($"[Spawn] Enemy spawned at {position}");
+            Debug.Log($"[Spawn] Enemy at {position}");
         }
 
         private Vector3Int GetRandomDirection()
@@ -142,23 +135,6 @@ namespace Frantic.Networking
             };
         }
 
-        private void SpawnDungeonExit(Vector3 position)
-        {
-            if (_dungeonExitPrefab == null)
-            {
-                Debug.LogWarning("[Dungeon] No dungeon exit prefab assigned");
-                return;
-            }
 
-            var exit = GameObject.Instantiate(_dungeonExitPrefab, position, Quaternion.identity);
-            var networkObject = exit.GetComponent<NetworkObject>();
-            if (networkObject == null)
-            {
-                networkObject = exit.AddComponent<NetworkObject>();
-            }
-            networkObject.Spawn(true);
-
-            Debug.Log($"[Spawn] DungeonExit placed at {position}");
-        }
     }
 }

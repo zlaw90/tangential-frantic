@@ -17,7 +17,7 @@ namespace Frantic.Networking
         {
             if (_target == null)
             {
-                var player = FindPlayerInSameScene();
+                var player = FindPlayer();
                 if (player != null)
                 {
                     _target = player.transform;
@@ -32,16 +32,10 @@ namespace Frantic.Networking
             transform.position = Vector3.Lerp(transform.position, desiredPosition, _smoothSpeed * Time.deltaTime);
         }
 
-        private PlayerNetwork FindPlayerInSameScene()
+        private PlayerNetwork FindPlayer()
         {
             var players = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
-            foreach (var player in players)
-            {
-                if (player.gameObject.scene.name == gameObject.scene.name)
-                {
-                    return player;
-                }
-            }
+            if (players.Length > 0) return players[0];
             return null;
         }
 

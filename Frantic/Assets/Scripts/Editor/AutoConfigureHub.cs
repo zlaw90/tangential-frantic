@@ -60,6 +60,7 @@ namespace Frantic.Networking.Editor
             if (nmComponent != null)
             {
                 nmComponent.NetworkConfig.PlayerPrefab = playerPrefab;
+                nmComponent._playerPrefabOverride = playerPrefab;
                 EditorUtility.SetDirty(networkManagerGO);
                 Debug.Log("[AutoConfigure] Player prefab assigned to NetworkManager");
             }

@@ -1,45 +1,36 @@
 using UnityEngine;
-using Unity.Netcode;
 
 namespace Frantic.Networking
 {
-    public class DungeonExitNetwork : FranticNetworkObject
+    public class DungeonExitNetwork : MonoBehaviour
     {
         [SerializeField]
         private float _interactionRange = 2f;
 
+        private bool _hasTriggered;
+
         private void Update()
         {
-            if (!IsOwner) return;
+            if (!FranticNetworkManager.Instance.IsHost) return;
+            if (_hasTriggered) return;
 
-            if (InputManager.Interact)
-            {
-                CheckInteraction();
-            }
+            CheckInteraction();
         }
 
         private void CheckInteraction()
         {
-            var nearbyObjects = Physics2D.OverlapCircleAll(transform.position, _interactionRange);
+            var players = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
 
-            foreach (var collider in nearbyObjects)
+            foreach (var player in players)
             {
-                if (collider.CompareTag("Player"))
+                var distance = Vector3.Distance(transform.position, player.transform.position);
+                if (distance < _interactionRange)
                 {
-                    Debug.Log("[Exit] Player reached dungeon exit, completing run");
-                    CompleteDungeonServerRpc();
+                    _hasTriggered = true;
+                    GameManager.Instance?.CompleteDungeon();
                     return;
                 }
             }
-        }
-
-        [ServerRpc]
-        private void CompleteDungeonServerRpc()
-        {
-            if (!IsServer) return;
-
-            Debug.Log("[Exit] Completing dungeon, returning to hub");
-            GameManager.Instance?.CompleteDungeon();
         }
     }
 }

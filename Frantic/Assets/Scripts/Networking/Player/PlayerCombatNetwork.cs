@@ -24,12 +24,13 @@ namespace Frantic.Networking
         private int _currentAmmo;
         private NetworkVariable<int> _networkAmmo = new NetworkVariable<int>();
 
+        public int CurrentAmmo => _networkAmmo.Value;
+
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
             _currentAmmo = _maxAmmo;
             _networkAmmo.Value = _maxAmmo;
-            Debug.Log($"[Combat] Initialized with {_maxAmmo} ammo");
         }
 
         [ServerRpc]
@@ -37,23 +38,13 @@ namespace Frantic.Networking
         {
             if (!IsServer) return;
 
-            if (Time.time - _lastFireTime < _fireCooldown)
-            {
-                Debug.LogWarning("[Combat] Fire rate exceeded");
-                return;
-            }
+            if (Time.time - _lastFireTime < _fireCooldown) return;
 
-            if (_currentAmmo <= 0)
-            {
-                Debug.LogWarning("[Combat] Out of ammo");
-                return;
-            }
+            if (_currentAmmo <= 0) return;
 
             _currentAmmo--;
             _networkAmmo.Value = _currentAmmo;
             _lastFireTime = Time.time;
-
-            Debug.Log($"[Combat] Fired weapon, ammo: {_currentAmmo}/{_maxAmmo}");
 
             var player = GetComponent<PlayerNetwork>();
             if (player != null && player.weaponTip != null)
@@ -70,21 +61,26 @@ namespace Frantic.Networking
         public void ReloadServerRpc()
         {
             if (!IsServer) return;
-
             if (_currentAmmo == _maxAmmo) return;
 
             _currentAmmo = _maxAmmo;
             _networkAmmo.Value = _currentAmmo;
+            OnReloadedClientRpc();
+        }
 
-            Debug.Log("[Combat] Reloaded");
+        [ServerRpc]
+        public void AddAmmoServerRpc(int amount)
+        {
+            if (!IsServer) return;
+
+            _currentAmmo = Mathf.Min(_maxAmmo, _currentAmmo + amount);
+            _networkAmmo.Value = _currentAmmo;
             OnReloadedClientRpc();
         }
 
         [ServerRpc]
         private void SpawnProjectileServerRpc(Vector3 position, Vector3 direction)
         {
-            Debug.Log($"[Combat] SpawnProjectileServerRpc called at {position} dir={direction}");
-
             if (_projectilePrefab != null)
             {
                 var projectile = Instantiate(_projectilePrefab, position, Quaternion.identity);
@@ -92,34 +88,21 @@ namespace Frantic.Networking
                 if (networkObject == null)
                 {
                     networkObject = projectile.AddComponent<NetworkObject>();
-                    Debug.Log("[Combat] Added NetworkObject to projectile");
                 }
                 networkObject.Spawn(true);
                 var projectileNetwork = projectile.GetComponent<ProjectileNetwork>();
                 if (projectileNetwork == null)
                 {
                     projectileNetwork = projectile.AddComponent<ProjectileNetwork>();
-                    Debug.Log("[Combat] Added ProjectileNetwork to projectile");
                 }
                 projectileNetwork.Initialize(direction, gameObject);
-                Debug.Log($"[Spawn] Projectile spawned at {position}");
-            }
-            else
-            {
-                Debug.LogWarning("[Combat] No projectile prefab assigned, skipping spawn");
             }
         }
 
         [ClientRpc]
-        private void OnFireClientRpc()
-        {
-            Debug.Log("[Combat] Fire effect (client)");
-        }
+        private void OnFireClientRpc() { }
 
         [ClientRpc]
-        private void OnReloadedClientRpc()
-        {
-            Debug.Log("[Combat] Reloaded (client)");
-        }
+        private void OnReloadedClientRpc() { }
     }
 }

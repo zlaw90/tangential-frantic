@@ -14,50 +14,25 @@ namespace Frantic.Networking
 
         public void SetReady(ulong clientId, bool ready)
         {
-            if (!IsServer())
-            {
-                Debug.LogError("[Ready] SetReady called but not on server!");
-                return;
-            }
-
-            var nm = FranticNetworkManager.Instance;
-            var totalPlayers = nm?.ConnectedClientsList.Count ?? 0;
-            Debug.Log($"[Ready] SetReady: clientId={clientId}, ready={ready}, totalPlayers={totalPlayers}, isConnected={nm?.IsConnectedClient}");
+            if (!IsServer()) return;
 
             _readyStates[clientId] = ready;
             var readyCount = _readyStates.Values.Count(v => v);
-            Debug.Log($"[Ready] Ready states dict size={_readyStates.Count}, readyCount={readyCount}/{totalPlayers}");
-
-            foreach (var kvp in _readyStates)
-            {
-                Debug.Log($"[Ready]   Client {kvp.Key}: {kvp.Value}");
-            }
+            var totalPlayers = FranticNetworkManager.Instance?.ConnectedClientsList.Count ?? 0;
 
             if (readyCount >= totalPlayers && totalPlayers > 0)
             {
-                Debug.Log("[Ready] ALL PLAYERS READY! Starting countdown");
                 StartCountdown();
-            }
-            else
-            {
-                Debug.Log($"[Ready] NOT ready yet ({readyCount}/{totalPlayers})");
             }
         }
 
         public void StartCountdown()
         {
             if (!IsServer()) return;
-
-            if (_countdownActive)
-            {
-                Debug.Log("[Ready] Countdown already active, skipping");
-                return;
-            }
+            if (_countdownActive) return;
 
             _countdownActive = true;
             _countdownTimer = COUNTDOWN_DURATION;
-            Debug.Log("[Ready] Countdown started");
-            Debug.Log("[Ready] Countdown: 3");
         }
 
         private void Update()
@@ -65,32 +40,22 @@ namespace Frantic.Networking
             if (!IsServer() || !_countdownActive) return;
 
             _countdownTimer -= Time.deltaTime;
-            Debug.Log($"[Ready] Timer: {_countdownTimer:F1}s");
 
             if (_countdownTimer <= 0f)
             {
-                Debug.Log("[Ready] Countdown finished, starting dungeon");
-                var gameManagers = FindObjectsByType<GameManager>(FindObjectsSortMode.None);
-                GameManager gameManager = gameManagers.Length > 0 ? gameManagers[0] : null;
-                if (gameManager != null)
-                {
-                    gameManager.StartDungeon();
-                }
-                else
-                {
-                    Debug.LogError("[Ready] GameManager not found in scene!");
-                }
+                GameManager.Instance?.StartDungeon();
                 _countdownActive = false;
-            }
-            else if (_countdownTimer <= 1f && _countdownTimer > Time.deltaTime)
-            {
-                Debug.Log("[Ready] Countdown: 1");
             }
         }
 
         private bool IsServer()
         {
             return FranticNetworkManager.Instance != null && (FranticNetworkManager.Instance.IsHost || FranticNetworkManager.Instance.IsServer);
+        }
+
+        public System.Collections.Generic.Dictionary<ulong, bool> GetReadyStates()
+        {
+            return _readyStates;
         }
     }
 }

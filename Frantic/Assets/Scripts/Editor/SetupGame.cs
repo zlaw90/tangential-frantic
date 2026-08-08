@@ -56,6 +56,13 @@ namespace Frantic.Networking.Editor
             transport.SetConnectionData("0.0.0.0", 7778);
             nmComponent.NetworkConfig.NetworkTransport = transport;
 
+            var playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
+            if (playerPrefab != null)
+            {
+                nmComponent.NetworkConfig.PlayerPrefab = playerPrefab;
+                nmComponent._playerPrefabOverride = playerPrefab;
+            }
+
             var gameManager = new GameObject("GameManager");
             gameManager.AddComponent<Frantic.Networking.GameManager>();
 
@@ -236,9 +243,15 @@ namespace Frantic.Networking.Editor
 
             playerRoot.AddComponent<Frantic.Networking.PlayerNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerHealthNetwork>();
-            playerRoot.AddComponent<Frantic.Networking.PlayerCombatNetwork>();
+            var combat = playerRoot.AddComponent<Frantic.Networking.PlayerCombatNetwork>();
             playerRoot.AddComponent<Frantic.Networking.PlayerMovement>();
             playerRoot.AddComponent<Frantic.Networking.InteractionNetwork>();
+
+            var projectilePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Projectile.prefab");
+            if (projectilePrefab != null)
+            {
+                combat._projectilePrefab = projectilePrefab;
+            }
 
             var weaponTip = new GameObject("WeaponTip");
             weaponTip.transform.parent = playerRoot.transform;
@@ -387,8 +400,9 @@ namespace Frantic.Networking.Editor
             if (exitRoot.GetComponent<MeshFilter>() != null) GameObject.DestroyImmediate(exitRoot.GetComponent<MeshFilter>());
 
             exitRoot.AddComponent<NetworkObject>();
-            exitRoot.AddComponent<BoxCollider2D>().isTrigger = true;
-            exitRoot.AddComponent<BoxCollider2D>().size = new Vector2(3f, 2f);
+            var exitCollider = exitRoot.AddComponent<BoxCollider2D>();
+            exitCollider.isTrigger = true;
+            exitCollider.size = new Vector2(3f, 2f);
 
             exitRoot.AddComponent<SpriteRenderer>();
             exitRoot.AddComponent<Frantic.Networking.DungeonExitNetwork>();

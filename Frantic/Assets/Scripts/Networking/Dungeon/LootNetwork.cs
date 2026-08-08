@@ -18,32 +18,42 @@ namespace Frantic.Networking
         {
             if (!IsServer) return;
 
+            PlayerNetwork closestPlayer = null;
+            float closestDistance = _pickupRange;
+
             foreach (var client in NetworkManager.Singleton.ConnectedClients.Values)
             {
                 var playerObject = client.PlayerObject;
                 if (playerObject == null) continue;
 
                 var distance = Vector3.Distance(transform.position, playerObject.transform.position);
-                if (distance < _pickupRange)
+                if (distance < closestDistance)
                 {
-                    PickupForPlayer(client.ClientId);
-                    return;
+                    closestDistance = distance;
+                    closestPlayer = playerObject.GetComponent<PlayerNetwork>();
                 }
+            }
+
+            if (closestPlayer != null)
+            {
+                PickupForPlayer(closestPlayer);
             }
         }
 
-        private void PickupForPlayer(ulong clientId)
+        private void PickupForPlayer(PlayerNetwork player)
         {
-            var callerClient = NetworkManager.Singleton.ConnectedClients[clientId];
-            var callerObject = callerClient?.PlayerObject;
-            if (callerObject == null) return;
+            Debug.Log($"[Loot] Picked up by client {player.OwnerClientId}");
 
-            Debug.Log($"[Loot] Player {clientId} picked up loot");
-
-            var callerHealth = callerObject.GetComponent<PlayerHealthNetwork>();
-            if (callerHealth != null && _healthRestore > 0)
+            var health = player.GetComponent<PlayerHealthNetwork>();
+            if (health != null && _healthRestore > 0)
             {
-                callerHealth.HealServerRpc(_healthRestore);
+                health.HealServerRpc(_healthRestore);
+            }
+
+            var combat = player.GetComponent<PlayerCombatNetwork>();
+            if (combat != null && _ammoRestore > 0)
+            {
+                combat.AddAmmoServerRpc(_ammoRestore);
             }
 
             OnPickedUpClientRpc();
@@ -57,9 +67,6 @@ namespace Frantic.Networking
         }
 
         [ClientRpc]
-        private void OnPickedUpClientRpc()
-        {
-            Debug.Log("[Loot] Pickup effect");
-        }
+        private void OnPickedUpClientRpc() { }
     }
 }

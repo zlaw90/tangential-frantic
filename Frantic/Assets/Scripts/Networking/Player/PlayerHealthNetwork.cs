@@ -21,25 +21,19 @@ namespace Frantic.Networking
         {
             base.OnNetworkSpawn();
             _networkHealth.Value = _maxHealth;
-            Debug.Log($"[Health] Initialized with {_maxHealth} HP");
         }
 
         [ServerRpc]
         public void TakeDamageServerRpc(int damage)
         {
             if (!IsServer) return;
-
             if (damage <= 0) return;
 
-            var currentHealth = _networkHealth.Value;
-            currentHealth = Mathf.Max(0, currentHealth - damage);
+            var currentHealth = Mathf.Max(0, _networkHealth.Value - damage);
             _networkHealth.Value = currentHealth;
-
-            Debug.Log($"[Health] Took {damage} damage, health: {currentHealth}/{_maxHealth}");
 
             if (currentHealth <= 0)
             {
-                Debug.Log($"[Health] Player died");
                 GameManager.Instance?.Defeat();
             }
             else
@@ -59,11 +53,8 @@ namespace Frantic.Networking
         {
             if (!IsServer) return;
 
-            var currentHealth = _networkHealth.Value;
-            currentHealth = Mathf.Min(_maxHealth, currentHealth + amount);
+            var currentHealth = Mathf.Min(_maxHealth, _networkHealth.Value + amount);
             _networkHealth.Value = currentHealth;
-
-            Debug.Log($"[Health] Healed {amount}, health: {currentHealth}/{_maxHealth}");
             OnHealthChangedClientRpc(currentHealth);
         }
     }

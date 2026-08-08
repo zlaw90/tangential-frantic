@@ -10,6 +10,7 @@ namespace Frantic.Networking
         public static Vector2 Move => _playerInput != null ? _playerInput.actions["Move"].ReadValue<Vector2>() : Vector2.zero;
         public static bool Fire => _playerInput != null && _playerInput.actions["Attack"].WasPressedThisFrame();
         public static bool Interact => _playerInput != null && _playerInput.actions["Interact"].WasPressedThisFrame();
+        public static bool Reload => _playerInput != null && _playerInput.actions["Reload"].WasPressedThisFrame();
 
         public static void Initialize(PlayerInput playerInput)
         {

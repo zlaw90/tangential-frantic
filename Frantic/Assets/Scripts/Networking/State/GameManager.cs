@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace Frantic.Networking
@@ -29,70 +30,38 @@ namespace Frantic.Networking
 
         public void RequestReady(ulong callerId)
         {
-            Debug.Log($"[GameManager] RequestReady called: callerId={callerId}, currentState={_currentState}");
+            if (_currentState != GameState.Hub) return;
 
-            if (_currentState != GameState.Hub)
-            {
-                Debug.LogWarning($"[GameManager] Cannot ready up in state {_currentState}");
-                return;
-            }
-
-            var readyManagers = FindObjectsByType<ReadyManager>(FindObjectsSortMode.None);
-            ReadyManager readyManager = readyManagers.Length > 0 ? readyManagers[0] : null;
-            if (readyManager != null)
-            {
-                Debug.Log($"[GameManager] Calling readyManager.SetReady({callerId}, true)");
-                readyManager.SetReady(callerId, true);
-            }
-            else
-            {
-                Debug.LogError("[GameManager] ReadyManager not found in scene!");
-            }
+            var readyManager = FindObjectsByType<ReadyManager>(FindObjectsSortMode.None).FirstOrDefault();
+            readyManager?.SetReady(callerId, true);
         }
 
         public void StartCountdown()
         {
             if (!IsServer()) return;
 
-            Debug.Log("[GameManager] Starting countdown");
             _currentState = GameState.ReadyCountdown;
             OnStateChanged?.Invoke(_currentState);
 
-            var readyManagers = FindObjectsByType<ReadyManager>(FindObjectsSortMode.None);
-            ReadyManager readyManager = readyManagers.Length > 0 ? readyManagers[0] : null;
-            if (readyManager != null)
-            {
-                readyManager.StartCountdown();
-            }
+            var readyManager = FindObjectsByType<ReadyManager>(FindObjectsSortMode.None).FirstOrDefault();
+            readyManager?.StartCountdown();
         }
 
         public void StartDungeon()
         {
             if (!IsServer()) return;
 
-            Debug.Log("[GameManager] Starting dungeon generation");
             _currentState = GameState.Dungeon;
             OnStateChanged?.Invoke(_currentState);
-
-            if (FranticNetworkManager.Instance != null)
-            {
-                Debug.Log("[GameManager] Loading dungeon scene via NetworkManager");
-                FranticNetworkManager.Instance.LoadDungeonScene();
-            }
-            else
-            {
-                Debug.LogError("[GameManager] FranticNetworkManager.Instance is NULL!");
-            }
+            FranticNetworkManager.Instance?.LoadDungeonScene();
         }
 
         public void CompleteDungeon()
         {
             if (!IsServer()) return;
 
-            Debug.Log("[GameManager] Dungeon completed");
             _currentState = GameState.Exit;
             OnStateChanged?.Invoke(_currentState);
-
             FranticNetworkManager.Instance?.LoadHubScene();
         }
 
@@ -100,10 +69,8 @@ namespace Frantic.Networking
         {
             if (!IsServer()) return;
 
-            Debug.Log("[GameManager] Team defeated");
             _currentState = GameState.Defeat;
             OnStateChanged?.Invoke(_currentState);
-
             FranticNetworkManager.Instance?.LoadHubScene();
         }
 

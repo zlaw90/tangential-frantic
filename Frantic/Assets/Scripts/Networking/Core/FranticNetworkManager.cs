@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Linq;
 
 namespace Frantic.Networking
 {
@@ -11,9 +12,6 @@ namespace Frantic.Networking
         public const string DUNGEON_SCENE = "Dungeon";
 
         private bool _isShuttingDown;
-        private bool _inDungeon;
-        private Camera _hubCamera;
-        private Camera _dungeonCamera;
 
         private void Awake()
         {
@@ -27,56 +25,34 @@ namespace Frantic.Networking
             DontDestroyOnLoad(gameObject);
         }
 
+        [SerializeField]
+        private GameObject _playerPrefabOverride;
+
         private void Start()
         {
             OnClientDisconnectCallback += OnClientDisconnect;
-            _hubCamera = FindHubCamera();
-        }
 
-        private Camera FindHubCamera()
-        {
-            var hubScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(HUB_SCENE);
-            if (!hubScene.IsValid()) return null;
-
-            foreach (var root in hubScene.GetRootGameObjects())
+            if (NetworkConfig.PlayerPrefab == null && _playerPrefabOverride != null)
             {
-                var cam = root.GetComponent<Camera>();
-                if (cam != null) return cam;
-                foreach (var child in root.GetComponentsInChildren<Camera>())
-                {
-                    if (child.CompareTag("MainCamera")) return child;
-                }
-            }
-            var mainCam = Camera.main;
-            if (mainCam != null && mainCam.gameObject.scene.name == HUB_SCENE) return mainCam;
-            return null;
-        }
-
-        private void DisableSceneCameras(string sceneName)
-        {
-            var scene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneName);
-            if (!scene.IsValid()) return;
-
-            foreach (var root in scene.GetRootGameObjects())
-            {
-                foreach (var cam in root.GetComponentsInChildren<Camera>())
-                {
-                    cam.enabled = false;
-                }
+                NetworkConfig.PlayerPrefab = _playerPrefabOverride;
             }
         }
 
-        private void EnableSceneCameras(string sceneName)
+        private void DisableAllCameras()
         {
-            var scene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneName);
-            if (!scene.IsValid()) return;
-
-            foreach (var root in scene.GetRootGameObjects())
+            var cameras = FindObjectsOfType<Camera>();
+            foreach (var cam in cameras)
             {
-                foreach (var cam in root.GetComponentsInChildren<Camera>())
-                {
-                    cam.enabled = true;
-                }
+                if (cam != null) cam.enabled = false;
+            }
+        }
+
+        private void EnableAllCameras()
+        {
+            var cameras = FindObjectsOfType<Camera>();
+            foreach (var cam in cameras)
+            {
+                if (cam != null) cam.enabled = true;
             }
         }
 
@@ -87,7 +63,6 @@ namespace Frantic.Networking
 
         public void StartHost()
         {
-            Debug.Log("[Network] Starting host via NGO");
             base.StartHost();
         }
 
@@ -105,16 +80,11 @@ namespace Frantic.Networking
         {
             if (_isShuttingDown) return;
 
-            Debug.Log($"[Network] Client {clientId} disconnected");
-
             if (IsHost)
             {
                 var players = ConnectedClientsList;
-                Debug.Log($"[Network] Host: {players.Count - 1} players remaining");
-
                 if (players.Count <= 1)
                 {
-                    Debug.Log("[Network] Host is alone, returning to hub");
                     ReturnToHub();
                 }
             }
@@ -128,13 +98,10 @@ namespace Frantic.Networking
             var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
             if (currentScene.name == HUB_SCENE)
             {
-                Debug.Log("[Network] Already in hub scene");
                 return;
             }
 
-            Debug.Log("[Network] Host returning to hub");
-            UnityEngine.SceneManagement.SceneManager.LoadScene(HUB_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Single);
-            _inDungeon = false;
+            LoadHubScene();
         }
 
         public void LoadDungeonScene()
@@ -146,38 +113,32 @@ namespace Frantic.Networking
             }
             if (_isShuttingDown) return;
 
-            Debug.Log("[Network] Host loading dungeon scene");
-            DisableSceneCameras(HUB_SCENE);
-            _inDungeon = true;
-            var asyncOp = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(DUNGEON_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Additive);
-            asyncOp.allowSceneActivation = true;
-            Debug.Log("[Network] Dungeon scene load initiated");
+            HostLoadDungeonSceneClientRpc();
         }
 
         public void LoadHubScene()
         {
             if (!IsHost) return;
-            if (_isShuttingDown) return;
+            HostLoadHubSceneClientRpc();
+        }
 
-            var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-            if (currentScene.name == HUB_SCENE)
-            {
-                Debug.Log("[Network] Already in hub scene");
-                return;
-            }
+        [ClientRpc]
+        private void HostLoadDungeonSceneClientRpc()
+        {
+            DisableAllCameras();
+            var asyncOp = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(DUNGEON_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Additive);
+            asyncOp.allowSceneActivation = true;
+        }
 
-            Debug.Log("[Network] Host loading hub scene");
+        [ClientRpc]
+        private void HostLoadHubSceneClientRpc()
+        {
             UnityEngine.SceneManagement.SceneManager.LoadScene(HUB_SCENE, UnityEngine.SceneManagement.LoadSceneMode.Additive);
-            var hubScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(HUB_SCENE);
-            if (hubScene.IsValid())
+            EnableAllCameras();
+            var dungeonScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(DUNGEON_SCENE);
+            if (dungeonScene.IsValid())
             {
-                EnableSceneCameras(HUB_SCENE);
-                _inDungeon = false;
-                var dungeonScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName(DUNGEON_SCENE);
-                if (dungeonScene.IsValid())
-                {
-                    UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(DUNGEON_SCENE);
-                }
+                UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(DUNGEON_SCENE);
             }
         }
     }
