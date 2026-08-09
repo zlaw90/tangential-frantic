@@ -531,13 +531,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: Map
       objectReference: {fileID: 0}
-    - target: {fileID: 6177024954608769904, guid: d14982853421fda47be0264ac4efcf35, type: 3}
-      propertyPath: m_LocalScale.x
+    - target: {fileID: 4796188577143654228, guid: d14982853421fda47be0264ac4efcf35, type: 3}
+      propertyPath: scale
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6177024954608769904, guid: d14982853421fda47be0264ac4efcf35, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6177024954608769904, guid: d14982853421fda47be0264ac4efcf35, type: 3}
       propertyPath: m_LocalScale.y
-      value: 4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6177024954608769904, guid: d14982853421fda47be0264ac4efcf35, type: 3}
       propertyPath: m_LocalPosition.x

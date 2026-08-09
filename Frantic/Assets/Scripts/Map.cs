@@ -6,10 +6,12 @@ public class Map : MonoBehaviour
     public PathGroupPreset[] PathGroups;
 
     public int generationSeed;
+    public float scale = 1;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        transform.localScale = new Vector3(scale, scale, 1);
     }
 
     public void Generate(int width, int height)
@@ -84,6 +86,6 @@ public class Map : MonoBehaviour
 
     public Vector3 GetCoordinatesFromCellPosition(int x, int y)
     {
-        return new Vector3(transform.localScale.x * x, transform.localScale.y * y, 0);
+        return new Vector3(scale * x, scale * y, 0);
     }
 }
