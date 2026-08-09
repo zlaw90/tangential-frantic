@@ -682,8 +682,8 @@ MonoBehaviour:
   _minRooms: 5
   _maxRooms: 10
   _roomSpacing: 22
-  width: 32
-  height: 18
+  width: 12
+  height: 8
   playerSpawnX: -1
   playerSpawnY: -1
   exitX: -1

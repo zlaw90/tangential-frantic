@@ -46,12 +46,14 @@ namespace Frantic.Networking
         private GameObject _healthBarGO;
         private NavMeshAgent _navMeshAgent;
         private EnemyState _state = EnemyState.Idle;
+        private Animator _animator;
 
 
         private void Awake()
         {
             _currentHealth = _maxHealth;
             _lastAttackTime = -999f;
+            _animator = GetComponent<Animator>();
             CreateHealthBar();
         }
 
@@ -64,7 +66,6 @@ namespace Frantic.Networking
             var map = FindFirstObjectByType<Map>();
             _mapScale = map.scale;
             _seekDistanceThreshold *= _mapScale;
-            _attackRange *= _mapScale;
         }
 
         private void CreateHealthBar()
@@ -149,6 +150,8 @@ namespace Frantic.Networking
             }
             else
             {
+                _animator.SetBool("attacking", false);
+                _animator.SetBool("moving", false);
                 _navMeshAgent.isStopped = true;
             }
         }
@@ -157,10 +160,12 @@ namespace Frantic.Networking
             float nearestPlayerDistance = FindNearestPlayer();
             if (nearestPlayerDistance > _seekDistanceThreshold)
             {
+                _animator.SetBool("moving", false);
                 _state = EnemyState.Idle;
             }
             else
             {
+                _animator.SetBool("moving", true);
                 _navMeshAgent.SetDestination(_targetPlayer.position);
                 _navMeshAgent.speed = _moveSpeed;
                 _navMeshAgent.isStopped = false;
@@ -175,22 +180,23 @@ namespace Frantic.Networking
             float nearestPlayerDistance = FindNearestPlayer();
             if (nearestPlayerDistance > _attackRange)
             {
+                _animator.SetBool("attacking", false);
                 _state = EnemyState.Seeking;
             }
             else
             {
+                _animator.SetBool("attacking", true);
                 _navMeshAgent.SetDestination(_targetPlayer.position);
                 _navMeshAgent.speed = _moveSpeed;
                 _navMeshAgent.isStopped = false;
-                if (nearestPlayerDistance <= _attackRange)
-                {
-                    AttackPlayer();
-                }
+                AttackPlayer();
             }
         }
         private void Behavior_Dead()
         {
             _navMeshAgent.isStopped = true;
+            _animator.SetBool("attacking", false);
+            _animator.SetBool("moving", false);
         }
 
 
