@@ -31,8 +31,8 @@ namespace Frantic
                 _lastCheckTime = Time.time;
             }
 
-            var targetAmbientVolume = _engaged ? 0f : .35f;
-            var targetFranticVolume = _engaged ? .25f : 0f;
+            var targetAmbientVolume = _engaged ? 0.0f : 1.0f;
+            var targetFranticVolume = _engaged ? .25f : 0.0f;
 
             if (_ambientSource != null)
             {
