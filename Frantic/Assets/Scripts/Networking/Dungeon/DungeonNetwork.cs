@@ -22,12 +22,6 @@ namespace Frantic.Networking
         public Map _map;
 
         [SerializeField]
-        private int _minRooms = 5;
-
-        [SerializeField]
-        private int _maxRooms = 10;
-
-        [SerializeField]
         private float _roomSpacing = 24f;
 
         [Header("Dungeon Size By Cell Count")]
@@ -58,36 +52,8 @@ namespace Frantic.Networking
             RandomizePlayerSpawnLocationIfNeeded();
             RandomizeExitLocationIfNeeded();
 
-
             Debug.Log("[Dungeon] Generating dungeon");
-
             _map.Generate(width, height, exitX, exitY, playerSpawnX, playerSpawnY);
-
-            /*_placedRooms.Clear();
-            int roomCount = Random.Range(_minRooms, _maxRooms + 1);
-
-            var center = Vector3Int.zero;
-            PlaceRoom(center);
-
-            for (int i = 1; i < roomCount; i++)
-            {
-                var direction = GetRandomDirection();
-                var lastRoom = _placedRooms.ToList()[_placedRooms.Count - 1];
-                var nextRoom = lastRoom + direction;
-
-                if (!_placedRooms.Contains(nextRoom))
-                {
-                    PlaceRoom(nextRoom);
-                    if (nextRoom != Vector3Int.zero)
-                    {
-                        SpawnEnemiesForRoom(nextRoom);
-                    }
-                }
-                else
-                {
-                    i--;
-                }
-            }*/
 
             SpawnExit();
         }
@@ -122,7 +88,6 @@ namespace Frantic.Networking
             }
         }
 
-
         private void SpawnPlayer()
         {
             if (_playerPrefab != null)
@@ -142,48 +107,9 @@ namespace Frantic.Networking
             }
         }
 
-        private void PlaceRoom(Vector3Int position)
-        {
-            if (_roomPrefab == null)
-            {
-                Debug.LogWarning("[Dungeon] No room prefab assigned");
-                return;
-            }
-
-            var worldPos = new Vector3(position.x * _roomSpacing, position.y * _roomSpacing, 0f);
-            var roomInstance = Instantiate(_roomPrefab, worldPos, Quaternion.identity);
-            _placedRooms.Add(position);
-
-            Debug.Log($"[Spawn] Room at {worldPos}");
-        }
-
-        private void SpawnEnemiesForRoom(Vector3Int roomPosition)
-        {
-            var enemyCount = Random.Range(2, 5);
-            var difficultyMultiplier = 1f;
-
-            for (int i = 0; i < Mathf.CeilToInt(enemyCount * difficultyMultiplier); i++)
-            {
-                float angle = Random.value * Mathf.PI * 2f;
-                float radius = Random.Range(6f, 10f);
-                var offset = new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0f);
-                var spawnPosition = new Vector3(roomPosition.x * _roomSpacing, roomPosition.y * _roomSpacing, 0f) + offset;
-
-                float distToPlayer = Vector3.Distance(spawnPosition, Vector3.zero);
-                if (distToPlayer >= 10f)
-                {
-                    SpawnEnemy(spawnPosition);
-                }
-                else
-                {
-                    i--;
-                }
-            }
-        }
-
         private void SpawnEnemies()
         {
-            int enemyCount = 3 * Mathf.FloorToInt(Mathf.Log(width * height));
+            int enemyCount = 1; // 3 * Mathf.FloorToInt(Mathf.Log(width * height));
 
             var occupiedCells = new List<(int x, int y)>(enemyCount + 1)
             {
