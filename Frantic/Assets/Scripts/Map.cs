@@ -1,39 +1,47 @@
 using System.Linq;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class Map : MonoBehaviour
 {
     public PathGroupPreset[] PathGroups;
-    public GameObject tilePrefab;
-    public GameObject navMesh;
-    public GameObject dummy;
-    public GameObject playerDummy;
 
     public int generationSeed;
-
-    [Header("Dimensions")]
-    public int width = 50;
-    public int height = 50;
-    public float scale = 1.0f;
-    public Vector2 offset;
-
-
-    [Header("Player Spawn")]
-    public int playerSpawnX = -1;
-    public int playerSpawnY = -1;
-
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        if (playerSpawnX < 0) { playerSpawnX = UnityEngine.Random.Range(0, width); }
-        if (playerSpawnY < 0) { playerSpawnY = UnityEngine.Random.Range(0, height); }
+    }
 
+    public void Generate(int width, int height)
+    {
+        int minimumXDistance = Mathf.FloorToInt((float)width / 4);
+        int minimumYDistance = Mathf.FloorToInt((float)height / 4);
+
+        int exitX = Random.Range(0, width);
+        int exitY = Random.Range(0, height);
+
+        int playerSpawnX, playerSpawnY;
+        do
+        {
+            playerSpawnX = Random.Range(0, width);
+            playerSpawnY = Random.Range(0, height);
+        } while (Mathf.Abs(playerSpawnX - exitX) < minimumXDistance || Mathf.Abs(playerSpawnY - exitY) < minimumYDistance);
+
+        Generate(
+            width: width, 
+            height: height,
+            exitX: exitX,
+            exitY: exitY,
+            playerSpawnX: Random.Range(0, width),
+            playerSpawnY: Random.Range(0, height)
+        );
+    }
+
+
+
+    public void Generate(int width, int height, int exitX, int exitY, int playerSpawnX, int playerSpawnY)
+    {
         var pathDirectionsMap = new WilsonMazeGenerator().GenerateMaze(width, height, generationSeed);
-
-        var xScale = transform.localScale.x;
-        var yScale = transform.localScale.y;
 
         for (int x = 0; x < width; x++)
         {
@@ -51,28 +59,31 @@ public class Map : MonoBehaviour
 
                 GameObject mazeTilePrefab = pathGroup.GetMazeTilePrefab();
 
-                GameObject tile = Instantiate(mazeTilePrefab, new Vector3(x * xScale, y * yScale, 0), Quaternion.identity, this.transform);
+                GameObject tile = Instantiate(mazeTilePrefab, GetCoordinatesFromCellPosition(x, y), Quaternion.identity, this.transform);
 
                 if (x == playerSpawnX && y == playerSpawnY)
+                {
+                    tile.GetComponent<SpriteRenderer>().color = Color.darkGreen;
+                }
+                if (x == exitX && y == exitY)
                 {
                     tile.GetComponent<SpriteRenderer>().color = Color.darkOrange;
                 }
             }
         }
 
-        playerDummy.transform.position = new Vector3(xScale * playerSpawnX, yScale * playerSpawnY, 0);
 
-        var navsurface = navMesh.GetComponent<NavMeshPlus.Components.NavMeshSurface>();
-        navsurface.BuildNavMesh();
-
-        var agent = dummy.GetComponent<NavMeshAgent>();
-        agent.updateRotation = false;
-        agent.updateUpAxis = false;
-        agent.SetDestination(new Vector3(xScale * playerSpawnX, yScale * playerSpawnY, 0));
+        var navMesh = FindAnyObjectByType<NavMesh>();
+        navMesh.BuildNavMesh();
     }
 
     private PathGroupPreset GetPathGroupPreset(PathDirections pathDirections)
     {
         return PathGroups.First(t => t.MatchExact(pathDirections));
+    }
+
+    public Vector3 GetCoordinatesFromCellPosition(int x, int y)
+    {
+        return new Vector3(transform.localScale.x * x, transform.localScale.y * y, 0);
     }
 }
