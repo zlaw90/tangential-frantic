@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 
 namespace Frantic.Networking
@@ -40,6 +41,7 @@ namespace Frantic.Networking
         private const float ATTACK_COOLDOWN = 0.5f;
         private Image _healthBarImage;
         private GameObject _healthBarGO;
+        private NavMeshAgent _navMeshAgent;
 
         private void Awake()
         {
@@ -47,6 +49,11 @@ namespace Frantic.Networking
             _lastAttackTime = -999f;
             FindNearestPlayer();
             CreateHealthBar();
+        }
+
+        private void Start()
+        {
+            _navMeshAgent = GetComponent<NavMeshAgent>();
         }
 
         private void CreateHealthBar()
@@ -145,8 +152,11 @@ namespace Frantic.Networking
 
         private void MoveTowardsTarget()
         {
-            if (_targetPlayer == null) return;
+            if (_targetPlayer == null) { return; }
 
+            _navMeshAgent.SetDestination(_targetPlayer.position);
+
+            /*
             var direction = (_targetPlayer.position - transform.position).normalized;
             transform.position += new Vector3(direction.x, direction.y, 0f) * _moveSpeed * Time.deltaTime;
 
@@ -154,6 +164,7 @@ namespace Frantic.Networking
             {
                 AttackPlayer();
             }
+            */
         }
 
         private void AttackPlayer()
