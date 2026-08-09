@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 namespace Frantic.Networking
@@ -80,6 +81,19 @@ namespace Frantic.Networking
                         break;
                     }
                 }
+            }
+
+            var inDungeon = SceneManager.GetActiveScene().name == "Dungeon";
+
+            if (_ammoText != null)
+            {
+                _ammoText.gameObject.SetActive(inDungeon);
+            }
+
+            if (_healthBar != null)
+            {
+                var healthBarContainer = _healthBar.transform.parent != null ? _healthBar.transform.parent.gameObject : _healthBar.gameObject;
+                healthBarContainer.SetActive(inDungeon);
             }
         }
 
