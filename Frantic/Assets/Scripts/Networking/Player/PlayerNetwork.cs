@@ -8,7 +8,6 @@ namespace Frantic.Networking
         private PlayerHealthNetwork _health;
         private PlayerCombatNetwork _combat;
 
-   
 
         private Camera _cachedCamera;
 
@@ -22,7 +21,6 @@ namespace Frantic.Networking
             {
                 InputManager.Initialize(playerInput);
             }
-
             _cachedCamera = Camera.main;
         }
 

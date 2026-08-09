@@ -6,6 +6,12 @@ namespace Frantic.Networking
     {
         [SerializeField]
         private float _moveSpeed = 5f;
+        private Animator _animator;
+
+        private void Awake()
+        {
+            _animator = GetComponent<Animator>();
+        }
 
         private void FixedUpdate()
         {
@@ -18,7 +24,12 @@ namespace Frantic.Networking
 
             if (input != Vector2.zero)
             {
+                _animator.SetBool("walking", true);
                 transform.position += new Vector3(input.x, input.y, 0f) * _moveSpeed * Time.fixedDeltaTime;
+            }
+            else
+            {
+                _animator.SetBool("walking", false);
             }
         }
     }
