@@ -50,14 +50,7 @@ namespace Frantic.Networking
 
             SpawnPlayer();
 
-
-            for (int i = 0; i < 5; i++)
-            {
-                int enemyX = Random.Range(0, width);
-                int enemyY = Random.Range(0, height);
-                SpawnEnemy(_map.GetCoordinatesFromCellPosition(enemyX, enemyY));
-            }
-
+            SpawnEnemies();
         }
 
         public void GenerateDungeon()
@@ -185,6 +178,30 @@ namespace Frantic.Networking
                 {
                     i--;
                 }
+            }
+        }
+
+        private void SpawnEnemies()
+        {
+            int enemyCount = Mathf.FloorToInt(Mathf.Log(width * height));
+
+            var occupiedCells = new List<(int x, int y)>(enemyCount + 1)
+            {
+                (playerSpawnX, playerSpawnY)
+            };
+
+            for (int i = 0; i < enemyCount; i++)
+            {
+                int enemyX;
+                int enemyY;
+                do
+                {
+                    enemyX = Random.Range(0, width);
+                    enemyY = Random.Range(0, height);
+                } while (occupiedCells.Any(t => t.x == enemyX && t.y == enemyY));
+
+                occupiedCells.Add((enemyX, enemyY));
+                SpawnEnemy(_map.GetCoordinatesFromCellPosition(enemyX, enemyY));
             }
         }
 
