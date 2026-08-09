@@ -19,6 +19,9 @@ namespace Frantic.Networking
         public GameObject _exitPrefab;
 
         [SerializeField]
+        public Map _map;
+
+        [SerializeField]
         private int _minRooms = 5;
 
         [SerializeField]
@@ -27,19 +30,40 @@ namespace Frantic.Networking
         [SerializeField]
         private float _roomSpacing = 24f;
 
+        [Header("Dungeon Size By Cell Count")]
+        public int width = 32;
+        public int height = 18;
+
+        [Header("Player Spawn Cell Position")]
+        public int playerSpawnX = -1;
+        public int playerSpawnY = -1;
+
+        [Header("Exit Cell Position")]
+        public int exitX = -1;
+        public int exitY = -1;
+
         private readonly HashSet<Vector3Int> _placedRooms = new();
 
-        private void Awake()
+        private void Start()
         {
-            SpawnPlayer();
             GenerateDungeon();
+
+            SpawnPlayer();
+
+            SpawnEnemies();
         }
 
         public void GenerateDungeon()
         {
+            RandomizePlayerSpawnLocationIfNeeded();
+            RandomizeExitLocationIfNeeded();
+
+
             Debug.Log("[Dungeon] Generating dungeon");
 
-            _placedRooms.Clear();
+            _map.Generate(width, height, exitX, exitY, playerSpawnX, playerSpawnY);
+
+            /*_placedRooms.Clear();
             int roomCount = Random.Range(_minRooms, _maxRooms + 1);
 
             var center = Vector3Int.zero;
@@ -63,17 +87,47 @@ namespace Frantic.Networking
                 {
                     i--;
                 }
-            }
+            }*/
 
             SpawnExit();
-            Debug.Log($"[Dungeon] Generated {roomCount} rooms");
         }
+
+        private void RandomizePlayerSpawnLocationIfNeeded()
+        {
+            if (playerSpawnX < 0 || playerSpawnY < 0)
+            {
+                Debug.Log("[Dungeon] Randomizing player spawn location");
+                bool hasDefinedExit = exitX >= 0 && exitY >= 0;
+                int minXDif = Mathf.FloorToInt((float)width / 4);
+                int minYDif = Mathf.FloorToInt((float)height / 4);
+                do
+                {
+                    playerSpawnX = Random.Range(0, width);
+                    playerSpawnY = Random.Range(0, height);
+                } while (hasDefinedExit && (exitX < minXDif || exitY < minYDif));
+            }
+        }
+        private void RandomizeExitLocationIfNeeded()
+        {
+            if (exitX < 0 || exitY < 0)
+            {
+                Debug.Log("[Dungeon] Randomizing exit location");
+                int minXDif = Mathf.FloorToInt((float)width / 4);
+                int minYDif = Mathf.FloorToInt((float)height / 4);
+                do
+                {
+                    exitX = Random.Range(0, width);
+                    exitY = Random.Range(0, height);
+                } while (exitX < minXDif || exitY < minYDif);
+            }
+        }
+
 
         private void SpawnPlayer()
         {
             if (_playerPrefab != null)
             {
-                Instantiate(_playerPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity);
+                Instantiate(_playerPrefab, _map.GetCoordinatesFromCellPosition(playerSpawnX, playerSpawnY), Quaternion.identity);
                 Debug.Log("[Dungeon] Player spawned");
             }
             else
@@ -81,7 +135,7 @@ namespace Frantic.Networking
                 Debug.LogWarning("[Dungeon] No player prefab assigned");
             }
 
-            var hud = FindObjectOfType<HUD>();
+            var hud = FindAnyObjectByType<HUD>();
             if (hud == null)
             {
                 Debug.LogWarning("[Dungeon] No HUD found in scene!");
@@ -124,6 +178,30 @@ namespace Frantic.Networking
                 {
                     i--;
                 }
+            }
+        }
+
+        private void SpawnEnemies()
+        {
+            int enemyCount = Mathf.FloorToInt(Mathf.Log(width * height));
+
+            var occupiedCells = new List<(int x, int y)>(enemyCount + 1)
+            {
+                (playerSpawnX, playerSpawnY)
+            };
+
+            for (int i = 0; i < enemyCount; i++)
+            {
+                int enemyX;
+                int enemyY;
+                do
+                {
+                    enemyX = Random.Range(0, width);
+                    enemyY = Random.Range(0, height);
+                } while (occupiedCells.Any(t => t.x == enemyX && t.y == enemyY));
+
+                occupiedCells.Add((enemyX, enemyY));
+                SpawnEnemy(_map.GetCoordinatesFromCellPosition(enemyX, enemyY));
             }
         }
 

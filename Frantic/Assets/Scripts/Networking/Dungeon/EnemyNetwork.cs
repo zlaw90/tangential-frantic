@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 
 namespace Frantic.Networking
@@ -32,6 +33,7 @@ namespace Frantic.Networking
         [SerializeField]
         private float _healthBarOffsetY = 1.0f;
 
+        private float _mapScale;
         private int _currentHealth;
         private Transform _targetPlayer;
         private float _lastRetargetTime;
@@ -40,6 +42,7 @@ namespace Frantic.Networking
         private const float ATTACK_COOLDOWN = 0.5f;
         private Image _healthBarImage;
         private GameObject _healthBarGO;
+        private NavMeshAgent _navMeshAgent;
 
         private void Awake()
         {
@@ -47,6 +50,16 @@ namespace Frantic.Networking
             _lastAttackTime = -999f;
             FindNearestPlayer();
             CreateHealthBar();
+        }
+
+        private void Start()
+        {
+            _navMeshAgent = GetComponent<NavMeshAgent>();
+            _navMeshAgent.updateRotation = false;
+            _navMeshAgent.updateUpAxis = false;
+
+            var map = FindFirstObjectByType<Map>();
+            _mapScale = map.scale;
         }
 
         private void CreateHealthBar()
@@ -145,8 +158,30 @@ namespace Frantic.Networking
 
         private void MoveTowardsTarget()
         {
-            if (_targetPlayer == null) return;
+            if (_targetPlayer == null) { return; }
 
+            // Check if the player is close enough for the enemy to start seeking the player
+            var path = new NavMeshPath();
+            if (_navMeshAgent.CalculatePath(_targetPlayer.position, path))
+            {
+                float limit = 5.0f * _mapScale;
+                float distanceSum = 0.0f;
+
+                int i = 1;
+                while (i < path.corners.Length && distanceSum < limit)
+                {
+                    float distance = Vector3.Distance(path.corners[i - 1], path.corners[i]);
+                    distanceSum += distance;
+                    i++;
+                }
+                if (distanceSum < limit)
+                {
+                    _navMeshAgent.SetDestination(_targetPlayer.position);
+                }
+
+            }
+
+            /*
             var direction = (_targetPlayer.position - transform.position).normalized;
             transform.position += new Vector3(direction.x, direction.y, 0f) * _moveSpeed * Time.deltaTime;
 
@@ -155,7 +190,7 @@ namespace Frantic.Networking
                 Debug.Log("Enemy is attacking the player!");
                 AttackPlayer();
             }
-           
+            */
         }
 
         private void AttackPlayer()
