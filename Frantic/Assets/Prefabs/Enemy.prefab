@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 3540868274744659716}
   - component: {fileID: 8950395503149362613}
   - component: {fileID: 950185520524456252}
-  - component: {fileID: -7082945215602137287}
+  - component: {fileID: -8507978019584464393}
+  - component: {fileID: -8280069477358073274}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -31,7 +32,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 4, y: 4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -98,7 +99,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
+  m_Radius: 0.12
 --- !u!212 &8950395503149362613
 SpriteRenderer:
   serializedVersion: 2
@@ -148,8 +149,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -9095717837082945937, guid: 3f6d320588b303441add2880cf7b54f4, type: 3}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Sprite: {fileID: 1266371524, guid: 1929b53648937fa48a721e619901d115, type: 3}
+  m_Color: {r: 1, g: 0.9669811, b: 0.9669811, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -172,14 +173,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Frantic.Networking.EnemyNetwork
   _maxHealth: 50
   _moveSpeed: 2
-  _attackRange: 1.5
+  _attackRange: 2
   _attackDamage: 10
-  _lootPrefab: {fileID: 0}
+  _lootPrefab: {fileID: 564549025019083342, guid: b219a77cbebf90b409f3260096fe0862, type: 3}
   _lootDropChance: 0.5
   _healthBarWidth: 0.6
   _healthBarHeight: 0.06
-  _healthBarOffsetY: 1.5
---- !u!195 &-7082945215602137287
+  _healthBarOffsetY: 0.08
+--- !u!95 &-8507978019584464393
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3408868930219921903}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 593ab645f18ec2b49bdb1fb02182ed37, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!195 &-8280069477358073274
 NavMeshAgent:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -188,7 +211,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 3408868930219921903}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.1
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -197,7 +220,7 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 1
+  m_Height: 0.17
+  m_BaseOffset: 0.085
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
