@@ -152,8 +152,10 @@ namespace Frantic.Networking
 
             if (Vector3.Distance(transform.position, _targetPlayer.position) < _attackRange)
             {
+                Debug.Log("Enemy is attacking the player!");
                 AttackPlayer();
             }
+           
         }
 
         private void AttackPlayer()

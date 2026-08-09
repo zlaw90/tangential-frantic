@@ -16,7 +16,7 @@ namespace Frantic
         private float _engagementRange = 8f;
 
         [SerializeField]
-        private float _fadeSpeed = 1.5f;
+        private float _fadeSpeed = 1.75f;
 
         [SerializeField]
         private float _checkInterval = 0.25f;
@@ -32,8 +32,8 @@ namespace Frantic
                 _lastCheckTime = Time.time;
             }
 
-            var targetAmbientVolume = _engaged ? 0f : 1f;
-            var targetFranticVolume = _engaged ? 1f : 0f;
+            var targetAmbientVolume = _engaged ? 0f : .15f;
+            var targetFranticVolume = _engaged ? .25f : 0f;
 
             if (_ambientSource != null)
             {

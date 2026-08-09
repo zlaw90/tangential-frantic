@@ -98,7 +98,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.3
+  m_Radius: 0.12
 --- !u!212 &8950395503149362613
 SpriteRenderer:
   serializedVersion: 2
@@ -172,7 +172,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Frantic.Networking.EnemyNetwork
   _maxHealth: 50
   _moveSpeed: 2
-  _attackRange: 1.5
+  _attackRange: 2
   _attackDamage: 10
   _lootPrefab: {fileID: 564549025019083342, guid: b219a77cbebf90b409f3260096fe0862, type: 3}
   _lootDropChance: 0.5
