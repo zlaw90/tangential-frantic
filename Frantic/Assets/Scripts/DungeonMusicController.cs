@@ -1,4 +1,3 @@
-using System.Linq;
 using Frantic.Networking;
 using UnityEngine;
 
@@ -32,7 +31,7 @@ namespace Frantic
                 _lastCheckTime = Time.time;
             }
 
-            var targetAmbientVolume = _engaged ? 0f : .15f;
+            var targetAmbientVolume = _engaged ? 0f : .35f;
             var targetFranticVolume = _engaged ? .25f : 0f;
 
             if (_ambientSource != null)
@@ -48,18 +47,15 @@ namespace Frantic
 
         private bool IsEngagingEnemy()
         {
-            var player = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None).FirstOrDefault();
-            if (player == null) return false;
-
             var enemies = FindObjectsByType<EnemyNetwork>(FindObjectsSortMode.None);
-            foreach (var enemy in enemies)
+            for (int i = 0; i < enemies.Length; i++)
             {
-                if (Vector3.Distance(player.transform.position, enemy.transform.position) <= _engagementRange)
+                var state = enemies[i].State;
+                if (state == Networking.EnemyState.Seeking || state == Networking.EnemyState.Attacking)
                 {
                     return true;
                 }
             }
-
             return false;
         }
     }

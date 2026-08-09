@@ -35,6 +35,8 @@ namespace Frantic.Networking
 
         private float _seekDistanceThreshold = 5.0f;
 
+        public EnemyState State { get { return _state; } }
+
         private float _mapScale;
         private int _currentHealth;
         private Transform _targetPlayer;
