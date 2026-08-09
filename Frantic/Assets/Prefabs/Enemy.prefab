@@ -176,6 +176,7 @@ MonoBehaviour:
   _attackRange: 2
   _attackDamage: 10
   _lootPrefab: {fileID: 564549025019083342, guid: b219a77cbebf90b409f3260096fe0862, type: 3}
+  _deathEffect: {fileID: 918049802635695274, guid: b10db1d06a96de745b13b78f297905fd, type: 3}
   _lootDropChance: 0.5
   _healthBarWidth: 0.6
   _healthBarHeight: 0.06

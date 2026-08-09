@@ -22,6 +22,10 @@ namespace Frantic.Networking
         public GameObject _lootPrefab;
 
         [SerializeField]
+
+        public GameObject _deathEffect;
+
+        [SerializeField]
         private float _lootDropChance = 0.5f;
 
         [SerializeField]
@@ -256,6 +260,11 @@ namespace Frantic.Networking
         private void Die()
         {
             _state = EnemyState.Dead;
+
+            if (_deathEffect != null)
+            {
+                Instantiate(_deathEffect, transform.position, transform.rotation);
+            }
 
             if (Random.value < _lootDropChance && _lootPrefab != null)
             {
