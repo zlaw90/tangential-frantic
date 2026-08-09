@@ -33,8 +33,8 @@ namespace Frantic.Networking
         public int playerSpawnY = -1;
 
         [Header("Exit Cell Position")]
-        public int exitX = -1;
-        public int exitY = -1;
+        public int exitSpawnX = -1;
+        public int exitSpawnY = -1;
 
         private readonly HashSet<Vector3Int> _placedRooms = new();
 
@@ -53,7 +53,7 @@ namespace Frantic.Networking
             RandomizeExitLocationIfNeeded();
 
             Debug.Log("[Dungeon] Generating dungeon");
-            _map.Generate(width, height, exitX, exitY, playerSpawnX, playerSpawnY);
+            _map.Generate(width, height, exitSpawnX, exitSpawnY, playerSpawnX, playerSpawnY);
 
             SpawnExit();
         }
@@ -63,28 +63,28 @@ namespace Frantic.Networking
             if (playerSpawnX < 0 || playerSpawnY < 0)
             {
                 Debug.Log("[Dungeon] Randomizing player spawn location");
-                bool hasDefinedExit = exitX >= 0 && exitY >= 0;
+                bool hasDefinedExit = exitSpawnX >= 0 && exitSpawnY >= 0;
                 int minXDif = Mathf.FloorToInt((float)width / 4);
                 int minYDif = Mathf.FloorToInt((float)height / 4);
                 do
                 {
                     playerSpawnX = Random.Range(0, width);
                     playerSpawnY = Random.Range(0, height);
-                } while (hasDefinedExit && (exitX < minXDif || exitY < minYDif));
+                } while (hasDefinedExit && (exitSpawnX < minXDif || exitSpawnY < minYDif));
             }
         }
         private void RandomizeExitLocationIfNeeded()
         {
-            if (exitX < 0 || exitY < 0)
+            if (exitSpawnX < 0 || exitSpawnY < 0)
             {
                 Debug.Log("[Dungeon] Randomizing exit location");
                 int minXDif = Mathf.FloorToInt((float)width / 4);
                 int minYDif = Mathf.FloorToInt((float)height / 4);
                 do
                 {
-                    exitX = Random.Range(0, width);
-                    exitY = Random.Range(0, height);
-                } while (exitX < minXDif || exitY < minYDif);
+                    exitSpawnX = Random.Range(0, width);
+                    exitSpawnY = Random.Range(0, height);
+                } while (exitSpawnX < minXDif || exitSpawnY < minYDif);
             }
         }
 
@@ -145,69 +145,57 @@ namespace Frantic.Networking
 
         private void SpawnExit()
         {
-            var exitPosition = FindSafeExitPosition();
-
+           
             if (_exitPrefab != null)
             {
+                var exitPosition = _map.GetCoordinatesFromCellPosition(exitSpawnX, exitSpawnY);
                 var exitInstance = Instantiate(_exitPrefab, exitPosition, Quaternion.identity);
                 exitInstance.name = "DungeonExit";
                 Debug.Log($"[Spawn] Exit at {exitPosition}");
                 return;
             }
 
-            Debug.LogWarning("[Dungeon] No exit prefab assigned, creating fallback exit");
-            var fallbackExit = new GameObject("DungeonExit");
-            fallbackExit.transform.position = exitPosition;
-            var exitCollider = fallbackExit.AddComponent<BoxCollider2D>();
-            exitCollider.isTrigger = true;
-            exitCollider.size = new Vector2(3f, 2f);
-            fallbackExit.AddComponent<DungeonExitNetwork>();
-            var spriteRenderer = fallbackExit.AddComponent<SpriteRenderer>();
-            var whiteTexture = new Texture2D(1, 1);
-            whiteTexture.SetPixel(0, 0, Color.yellow);
-            whiteTexture.Apply();
-            spriteRenderer.sprite = Sprite.Create(whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-            Debug.Log($"[Spawn] Fallback exit at {exitPosition}");
+            Debug.LogWarning("[Dungeon] No exit prefab assigned");
         }
 
-        private Vector3 FindSafeExitPosition()
-        {
-            if (_placedRooms.Count == 0)
-            {
-                return new Vector3(0f, -20f, 0f);
-            }
+        // private Vector3 FindSafeExitPosition()
+        // {
+        //     if (_placedRooms.Count == 0)
+        //     {
+        //         return new Vector3(0f, -20f, 0f);
+        //     }
 
-            var roomHalfSize = 10f;
+        //     var roomHalfSize = 10f;
 
-            for (int attempt = 0; attempt < 200; attempt++)
-            {
-                var angle = Random.value * Mathf.PI * 2f;
-                var radius = Random.Range(30f, 60f);
-                var candidate = new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0f);
+        //     for (int attempt = 0; attempt < 200; attempt++)
+        //     {
+        //         var angle = Random.value * Mathf.PI * 2f;
+        //         var radius = Random.Range(30f, 60f);
+        //         var candidate = new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0f);
 
-                bool insideAnyRoom = false;
-                foreach (var room in _placedRooms)
-                {
-                    var roomCenter = new Vector3(room.x * _roomSpacing, room.y * _roomSpacing, 0f);
-                    var dx = Mathf.Abs(candidate.x - roomCenter.x);
-                    var dy = Mathf.Abs(candidate.y - roomCenter.y);
-                    if (dx < roomHalfSize && dy < roomHalfSize)
-                    {
-                        insideAnyRoom = true;
-                        break;
-                    }
-                }
+        //         bool insideAnyRoom = false;
+        //         foreach (var room in _placedRooms)
+        //         {
+        //             var roomCenter = new Vector3(room.x * _roomSpacing, room.y * _roomSpacing, 0f);
+        //             var dx = Mathf.Abs(candidate.x - roomCenter.x);
+        //             var dy = Mathf.Abs(candidate.y - roomCenter.y);
+        //             if (dx < roomHalfSize && dy < roomHalfSize)
+        //             {
+        //                 insideAnyRoom = true;
+        //                 break;
+        //             }
+        //         }
 
-                if (!insideAnyRoom)
-                {
-                    Debug.Log($"[Exit] Safe position found: {candidate}");
-                    return candidate;
-                }
-            }
+        //         if (!insideAnyRoom)
+        //         {
+        //             Debug.Log($"[Exit] Safe position found: {candidate}");
+        //             return candidate;
+        //         }
+        //     }
 
-            Debug.LogWarning("[Exit] Could not find safe position, using fallback");
-            return new Vector3(0f, -40f, 0f);
-        }
+        //     Debug.LogWarning("[Exit] Could not find safe position, using fallback");
+        //     return new Vector3(0f, -40f, 0f);
+        // }
 
         private Vector3Int GetRandomDirection()
         {

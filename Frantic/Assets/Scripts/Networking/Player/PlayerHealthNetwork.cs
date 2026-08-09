@@ -15,6 +15,7 @@ namespace Frantic.Networking
         private int _currentHealth;
         private string _currentScene;
 
+        private Animator _animator;
         public int CurrentHealth => _currentHealth;
         public int MaxHealth => _maxHealth;
 
@@ -22,6 +23,7 @@ namespace Frantic.Networking
         {
             _currentHealth = _maxHealth;
             _currentScene = SceneManager.GetActiveScene().name;
+            _animator = GetComponent<Animator>();
         }
 
         public void TakeDamage(int damage)
@@ -33,7 +35,7 @@ namespace Frantic.Networking
                 Debug.LogWarning("[PlayerHealth] Taking damage in Hub - ignoring");
                 return;
             }
-
+            _animator.SetBool("damage", true);
             var oldHealth = _currentHealth;
             var newHealth = Mathf.Max(0, _currentHealth - damage);
             _currentHealth = newHealth;
@@ -44,10 +46,12 @@ namespace Frantic.Networking
 
             if (_currentHealth <= 0)
             {
+                _animator.SetBool("dead", true);
                 Debug.LogError("[PlayerHealth] Player died!");
                 GameManager.Instance?.Defeat();
                 OnPlayerDied?.Invoke();
             }
+            _animator.SetBool("damage", false);
         }
 
         public void Heal(int amount)
