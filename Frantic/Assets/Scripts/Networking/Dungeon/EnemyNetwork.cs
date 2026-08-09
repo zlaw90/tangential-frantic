@@ -54,6 +54,8 @@ namespace Frantic.Networking
         private void Start()
         {
             _navMeshAgent = GetComponent<NavMeshAgent>();
+            _navMeshAgent.updateRotation = false;
+            _navMeshAgent.updateUpAxis = false;
         }
 
         private void CreateHealthBar()

@@ -44,7 +44,7 @@ namespace Frantic.Networking
 
         private readonly HashSet<Vector3Int> _placedRooms = new();
 
-        private void Awake()
+        private void Start()
         {
             GenerateDungeon();
 
