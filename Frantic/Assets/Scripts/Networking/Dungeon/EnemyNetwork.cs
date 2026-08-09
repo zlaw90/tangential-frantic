@@ -10,7 +10,7 @@ namespace Frantic.Networking
         private int _maxHealth = 50;
 
         [SerializeField]
-        private float _moveSpeed = 2f;
+        private float _moveSpeed = 3f;
 
         [SerializeField]
         private float _attackRange = 1.2f;
@@ -33,6 +33,8 @@ namespace Frantic.Networking
         [SerializeField]
         private float _healthBarOffsetY = 1.0f;
 
+        private float _seekDistanceThreshold = 5.0f;
+
         private float _mapScale;
         private int _currentHealth;
         private Transform _targetPlayer;
@@ -43,12 +45,13 @@ namespace Frantic.Networking
         private Image _healthBarImage;
         private GameObject _healthBarGO;
         private NavMeshAgent _navMeshAgent;
+        private EnemyState _state = EnemyState.Idle;
+
 
         private void Awake()
         {
             _currentHealth = _maxHealth;
             _lastAttackTime = -999f;
-            FindNearestPlayer();
             CreateHealthBar();
         }
 
@@ -60,6 +63,8 @@ namespace Frantic.Networking
 
             var map = FindFirstObjectByType<Map>();
             _mapScale = map.scale;
+            _seekDistanceThreshold *= _mapScale;
+            _attackRange *= _mapScale;
         }
 
         private void CreateHealthBar()
@@ -125,73 +130,95 @@ namespace Frantic.Networking
 
         private void Update()
         {
-            if (_targetPlayer != null)
+            switch (_state)
             {
-                MoveTowardsTarget();
+                case EnemyState.Idle:      Behavior_Idle();      break;
+                case EnemyState.Seeking:   Behavior_Seeking();   break;
+                case EnemyState.Attacking: Behavior_Attacking(); break;
+                case EnemyState.Dead:      Behavior_Dead();      break;
             }
-
-            if (Time.time - _lastRetargetTime > RETARGET_INTERVAL)
-            {
-                FindNearestPlayer();
-                _lastRetargetTime = Time.time;
-            }
-
-            UpdateHealthBarColor();
         }
 
-        private void FindNearestPlayer()
-        {
-            var players = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
-            if (players.Length == 0) return;
 
+        private void Behavior_Idle()
+        {
+            float nearestPlayerDistance = FindNearestPlayer();
+            if (nearestPlayerDistance < _seekDistanceThreshold)
+            {
+                _state = EnemyState.Seeking;
+            }
+            else
+            {
+                _navMeshAgent.isStopped = true;
+            }
+        }
+        private void Behavior_Seeking()
+        {
+            float nearestPlayerDistance = FindNearestPlayer();
+            if (nearestPlayerDistance > _seekDistanceThreshold)
+            {
+                _state = EnemyState.Idle;
+            }
+            else
+            {
+                _navMeshAgent.SetDestination(_targetPlayer.position);
+                _navMeshAgent.speed = _moveSpeed;
+                _navMeshAgent.isStopped = false;
+                if (nearestPlayerDistance <= _attackRange)
+                {
+                    _state = EnemyState.Attacking;
+                }
+            }
+        }
+        private void Behavior_Attacking()
+        {
+            float nearestPlayerDistance = FindNearestPlayer();
+            if (nearestPlayerDistance > _attackRange)
+            {
+                _state = EnemyState.Seeking;
+            }
+            else
+            {
+                _navMeshAgent.SetDestination(_targetPlayer.position);
+                _navMeshAgent.speed = _moveSpeed;
+                _navMeshAgent.isStopped = false;
+                if (nearestPlayerDistance <= _attackRange)
+                {
+                    AttackPlayer();
+                }
+            }
+        }
+        private void Behavior_Dead()
+        {
+            _navMeshAgent.isStopped = true;
+        }
+
+
+        private float FindNearestPlayer()
+        {
+            Transform newTarget = null;
+
+            var players = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
+
+            var path = new NavMeshPath();
             float nearestDistance = float.MaxValue;
             foreach (var player in players)
             {
-                var distance = Vector3.Distance(transform.position, player.transform.position);
-                if (distance < nearestDistance)
+                if (_navMeshAgent.CalculatePath(player.transform.position, path))
                 {
-                    nearestDistance = distance;
-                    _targetPlayer = player.transform;
+                    var distance = GetPathDistance(path.corners, nearestDistance);
+                    if (distance < nearestDistance)
+                    {
+                        nearestDistance = distance;
+                        newTarget = player.transform;
+                    }
                 }
             }
+
+            _targetPlayer = newTarget;
+            return nearestDistance;
         }
 
-        private void MoveTowardsTarget()
-        {
-            if (_targetPlayer == null) { return; }
-
-            // Check if the player is close enough for the enemy to start seeking the player
-            var path = new NavMeshPath();
-            if (_navMeshAgent.CalculatePath(_targetPlayer.position, path))
-            {
-                float limit = 5.0f * _mapScale;
-                float distanceSum = 0.0f;
-
-                int i = 1;
-                while (i < path.corners.Length && distanceSum < limit)
-                {
-                    float distance = Vector3.Distance(path.corners[i - 1], path.corners[i]);
-                    distanceSum += distance;
-                    i++;
-                }
-                if (distanceSum < limit)
-                {
-                    _navMeshAgent.SetDestination(_targetPlayer.position);
-                }
-
-            }
-
-            /*
-            var direction = (_targetPlayer.position - transform.position).normalized;
-            transform.position += new Vector3(direction.x, direction.y, 0f) * _moveSpeed * Time.deltaTime;
-
-            if (Vector3.Distance(transform.position, _targetPlayer.position) < _attackRange)
-            {
-                Debug.Log("Enemy is attacking the player!");
-                AttackPlayer();
-            }
-            */
-        }
 
         private void AttackPlayer()
         {
@@ -220,6 +247,8 @@ namespace Frantic.Networking
 
         private void Die()
         {
+            _state = EnemyState.Dead;
+
             if (Random.value < _lootDropChance && _lootPrefab != null)
             {
                 SpawnLoot();
@@ -237,5 +266,45 @@ namespace Frantic.Networking
         {
             Instantiate(_lootPrefab, transform.position, Quaternion.identity);
         }
+
+
+        /// <summary>
+        /// Calculate the full distance along a path.
+        /// </summary>
+        private float GetPathDistance(Vector3[] pathCorners)
+        {
+            float distance = 0.0f;
+            for (int i = 1; i < pathCorners.Length; i++)
+            {
+                distance += Vector3.Distance(pathCorners[i - 1], pathCorners[i]);
+            }
+            return distance;
+        }
+        /// <summary>
+        /// Calculate the distance along a path, quiting once the distance reaches the specified limit.
+        /// Use this when you only want to identify if a path is longer than a known length.
+        /// </summary>
+        private float GetPathDistance(Vector3[] pathCorners, float limit)
+        {
+            float distance = 0.0f;
+            int i = 1;
+            while (i < pathCorners.Length && distance < limit)
+            {
+                distance += Vector3.Distance(pathCorners[i - 1], pathCorners[i]);
+                i++;
+            }
+            return distance;
+        }
+
     }
+
+
+    public enum EnemyState
+    {
+        Idle,
+        Seeking,
+        Attacking,
+        Dead
+    }
+
 }

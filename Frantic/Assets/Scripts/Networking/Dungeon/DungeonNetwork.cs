@@ -183,7 +183,7 @@ namespace Frantic.Networking
 
         private void SpawnEnemies()
         {
-            int enemyCount = Mathf.FloorToInt(Mathf.Log(width * height));
+            int enemyCount = 3 * Mathf.FloorToInt(Mathf.Log(width * height));
 
             var occupiedCells = new List<(int x, int y)>(enemyCount + 1)
             {
