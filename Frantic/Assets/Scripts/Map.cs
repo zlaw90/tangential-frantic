@@ -9,7 +9,7 @@ public class Map : MonoBehaviour
     public float scale = 1;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    void Awake()
     {
         transform.localScale = new Vector3(scale, scale, 1);
     }

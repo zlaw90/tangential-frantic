@@ -52,13 +52,13 @@ namespace Frantic.Networking
                 return;
             }
 
-            var playerHealth = collision.gameObject.GetComponent<PlayerHealthNetwork>();
-            if (playerHealth != null)
-            {
-                playerHealth.TakeDamage(_damage);
-                Destroy(gameObject);
-                return;
-            }
+            // var playerHealth = collision.gameObject.GetComponent<PlayerHealthNetwork>();
+            // if (playerHealth != null)
+            // {
+            //     playerHealth.TakeDamage(_damage);
+            //     Destroy(gameObject);
+            //     return;
+            // }
 
             Destroy(gameObject);
         }
